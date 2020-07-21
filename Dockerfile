@@ -9,6 +9,7 @@ COPY --from=ffmpeg /usr/local/ /usr/local/
 ENV VERSION="0.0.1"
 ENV XDG_CONFIG_HOME="/xdg"
 ENV PYTHON="python3"
+ENV PathToDLClient="/root/scripts/deemix"
 ENV library="/storage/media/music"
 RUN \
 	echo "************ install dependencies ************" && \
