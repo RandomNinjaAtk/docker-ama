@@ -51,12 +51,13 @@ RUN \
 	echo "************ install pip dependencies ************" && \
 	pip3 install -r /root/scripts/deemix/requirements.txt --user && \
 	echo "************ customize deezloader ************" && \
-	sed -i 's/"downloadLocation": "",/"downloadLocation": "\/storage\/downloads\/lidarr\/dlclient",/g' "/root/scripts/deemix/deemix/app/default.json" && \
+	sed -i 's/"downloadLocation": "",/"downloadLocation": "\/downloadfolder",/g' "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"tracknameTemplate\": \"%artist% - %title%\"/\"tracknameTemplate\": \"%discnumber%%tracknumber% - %title% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"albumTracknameTemplate\": \"%tracknumber% - %title%\"/\"albumTracknameTemplate\": \"%discnumber%%tracknumber% - %title% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"artistNameTemplate\": \"%artist%\"/\"artistNameTemplate\": \"%artist% (%artist_id%)\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"albumNameTemplate\": \"%artist% - %album%\"/\"albumNameTemplate\": \"%artist% - %type% - %year% - %album% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"createArtistFolder\": false/\"createArtistFolder\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
+	sed -i "s/\"createSingleFolder\": false/\"createSingleFolder\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"saveArtworkArtist\": false/\"saveArtworkArtist\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"embeddedArtworkSize\": 800/\"embeddedArtworkSize\": 1800/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"localArtworkSize\": 1400/\"localArtworkSize\": 1800/g" "/root/scripts/deemix/deemix/app/default.json" && \
