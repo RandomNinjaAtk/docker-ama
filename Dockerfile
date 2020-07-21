@@ -76,7 +76,7 @@ RUN \
 	sed -i "s/\"multitagSeparator\": \"default\"/\"multitagSeparator\": \"andFeat\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"singleAlbumArtist\": false/\"singleAlbumArtist\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	cp "/root/scripts/deemix/deemix/app/default.json" "/xdg/deemix/config.json" && \
-	chmod 0777 -R "/xdg/deemix" && \
+	chmod 0777 -R "/xdg/deemix"
 	
 RUN \
 	apt-get update -y && \
