@@ -59,6 +59,7 @@ RUN \
 	sed -i "s/\"createArtistFolder\": false/\"createArtistFolder\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"createSingleFolder\": false/\"createSingleFolder\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"saveArtworkArtist\": false/\"saveArtworkArtist\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
+	sed -i "s/\"jpegImageQuality\": 80/\"jpegImageQuality\": 90/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"embeddedArtworkSize\": 800/\"embeddedArtworkSize\": 1800/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"localArtworkSize\": 1400/\"localArtworkSize\": 1800/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"removeAlbumVersion\": false/\"removeAlbumVersion\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
