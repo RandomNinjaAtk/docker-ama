@@ -50,7 +50,7 @@ RUN \
 	git clone https://codeberg.org/RemixDev/deemix.git ${PathToDLClient} && \
 	echo "************ install pip dependencies ************" && \
 	pip3 install -r /root/scripts/deemix/requirements.txt --user && \
-	echo "************ customize deezloader ************" && \
+	echo "************ customize dlclient ************" && \
 	sed -i 's/"downloadLocation": "",/"downloadLocation": "\/downloadfolder",/g' "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"tracknameTemplate\": \"%artist% - %title%\"/\"tracknameTemplate\": \"%discnumber%%tracknumber% - %title% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"albumTracknameTemplate\": \"%tracknumber% - %title%\"/\"albumTracknameTemplate\": \"%discnumber%%tracknumber% - %title% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
