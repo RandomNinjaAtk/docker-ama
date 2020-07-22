@@ -35,7 +35,7 @@ audio["tmpo"] = [bpm]
 audio["trkn"] = [tracknumber]
 audio["disk"] = [discnumber]
 audio["cprt"] = [copyrightext]
-audio["cpil"] = [compilation]
+#audio["cpil"] = [compilation]
 audio["stik"] = [1]
 audio["\xa9cmt"] = [iscr]
 with open(os.environ['cover'], "rb") as f:
