@@ -57,6 +57,7 @@ RUN \
 	sed -i "s/\"artistNameTemplate\": \"%artist%\"/\"artistNameTemplate\": \"%artist% (%artist_id%)\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"albumNameTemplate\": \"%artist% - %album%\"/\"albumNameTemplate\": \"%artist% - %type% - %year% - %album_id% - %album% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"createArtistFolder\": false/\"createArtistFolder\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
+	sed -i "s/\"createCDFolder\": true/\"createArtistFolder\": false/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"createSingleFolder\": false/\"createSingleFolder\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"saveArtworkArtist\": false/\"saveArtworkArtist\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"jpegImageQuality\": 80/\"jpegImageQuality\": 90/g" "/root/scripts/deemix/deemix/app/default.json" && \
