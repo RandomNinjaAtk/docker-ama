@@ -55,7 +55,7 @@ RUN \
 	sed -i "s/\"tracknameTemplate\": \"%artist% - %title%\"/\"tracknameTemplate\": \"%discnumber%%tracknumber% - %title% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"albumTracknameTemplate\": \"%tracknumber% - %title%\"/\"albumTracknameTemplate\": \"%discnumber%%tracknumber% - %title% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"artistNameTemplate\": \"%artist%\"/\"artistNameTemplate\": \"%artist% (%artist_id%)\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
-	sed -i "s/\"albumNameTemplate\": \"%artist% - %album%\"/\"albumNameTemplate\": \"%artist% - %type% - %year% - %album% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
+	sed -i "s/\"albumNameTemplate\": \"%artist% - %album%\"/\"albumNameTemplate\": \"%artist% - %type% - %year% - %album_id% - %album% %explicit%\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"createArtistFolder\": false/\"createArtistFolder\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"createSingleFolder\": false/\"createSingleFolder\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"saveArtworkArtist\": false/\"saveArtworkArtist\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
