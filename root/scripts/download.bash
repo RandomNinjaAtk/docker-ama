@@ -2,3 +2,370 @@
 export XDG_CONFIG_HOME="/xdg"
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
+
+configuration () {
+	echo "######################################### CONFIGURATION VERIFICATION #########################################"
+	error=0
+    dlquality="FLAC"
+    if [ -d "$LIBRARY" ]; then
+		echo "LIBRARY Location: $LIBRARY"
+        sed -i "s%/downloadfolder%$LIBRARY%g" "/xdg/deemix/config.json"
+	else
+		echo "ERROR: LIBRARY setting invalid, currently set to: $LIBRARY"
+		echo "ERROR: LIBRARY Expected Valid Setting: /your/path/to/final/music/destination"
+		error=1
+	fi
+
+    if [ ! -z "$ARL_TOKEN" ]; then
+		echo "ARL Token: Configured"
+        if [ -f "$XDG_CONFIG_HOME/deemix/.arl" ]; then
+            rm "$XDG_CONFIG_HOME/deemix/.arl"
+        fi
+         if [ ! -f "$XDG_CONFIG_HOME/deemix/.arl" ]; then 
+            echo -n "$ARL_TOKEN" > "$XDG_CONFIG_HOME/deemix/.arl"
+        fi
+	else
+		echo "ERROR: ARL_TOKEN setting invalid, currently set to: $ARL_TOKEN"
+		error=1
+	fi
+
+    if [ ! -z "$ARL_TOKEN" ]; then
+        echo "Number of Concurrent Processes: $NumberConcurrentProcess"
+        sed -i "s%\"queueConcurrency\": 3%\"queueConcurrency\": $NumberConcurrentProcess%g" "/xdg/deemix/config.json"
+    else
+		echo "ERROR: NumberConcurrentProcess setting invalid, defaulting  to: 3"
+        NumberConcurrentProcess="3"
+	fi
+
+    if [ "$RELATED_ARTIST" = "true" ]; then
+        echo "Related Artist: ENABLED"
+    else
+        echo "Related Artist: DISABLED"
+    fi
+
+    if [ "$RELATED_ARTIST_RELATED" = "true" ]; then
+        echo "Related Artist Related (loop): ENABLED"
+    else
+        echo "Related Artist Related (loop): DISABLED"
+    fi
+
+    if [ ! -z "$FORMAT" ]; then
+        echo "Download Format: $FORMAT"
+    else
+        FORMAT="AAC"
+        echo "Download Format: $FORMAT"
+    fi
+
+    if [ ! -z "$FilePermissions" ]; then
+        echo "File Permissions: $FilePermissions"
+    else
+        echo "ERROR: FilePermissions not set, using default..."
+        FilePermissions="666"
+        echo "File Permissions: $FilePermissions"
+    fi
+
+    if [ ! -z "$FolderPermissions" ]; then
+        echo "Folder Permissions: $FolderPermissions"
+    else
+        echo "ERROR: FolderPermissions not set, using default..."
+        FolderPermissions="777"
+        echo "Folder Permissions: $FolderPermissions"
+    fi    
+
+    if [ "$LidarrListImport" = "true" ]; then
+        echo "Lidarr List Import: ENABLED"
+        wantit=$(curl -s --header "X-Api-Key:"${LidarrAPIkey} --request GET  "$LidarrUrl/api/v1/Artist/")
+	    wantedtotal=$(echo "${wantit}"| jq -r '.[].sortName' | wc -l)
+        MBArtistID=($(echo "${wantit}" | jq -r ".[].foreignArtistId"))
+        if [ "$wantedtotal" -gt "0" ]; then
+            echo "Lidarr Connection : Successful"
+        else
+           echo "Lidarr Connection : Error"
+           echo "Verify Lidarr is online at this address: $LidarrUrl"
+           echo "Verify Lidarr API Key is correct: $LidarrAPIkey"
+           error=1
+        fi
+    else
+        echo "Lidarr List Import: ENABLED"
+    fi
+
+    if [ $error = 1 ]; then
+		echo "Please correct errors before attempting to run script again..."
+		echo "Exiting..."
+		exit 1
+	fi
+
+}
+
+LidarrListImport () {
+
+    for id in ${!MBArtistID[@]}; do
+        artistnumber=$(( $id + 1 ))
+		mbid="${MBArtistID[$id]}"
+        deezerartisturlcount="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url" | wc -l)"
+        deezerartisturl=($(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url"))
+        echo "Processing $deezerartisturlcount Lidarr Artist Links"
+        for url in ${!deezerartisturl[@]}; do
+			deezerid="${deezerartisturl[$url]}"
+			lidarrdeezerid=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
+            touch "/config/list/$lidarrdeezerid-lidarr"
+        done
+    done
+}
+
+
+AlbumDL () {
+    chmod 0777 -R "${PathToDLClient}"
+	currentpwd="$(pwd)"
+    if cd "${PathToDLClient}" && python3 -m deemix -b ${dlquality} "$dlurl" && cd "${currentpwd}"; then
+        echo "Complete"
+    fi
+}
+
+ArtistCache () {
+    if [ ! -d "temp" ]; then
+        mkdir -p "temp"
+    fi
+
+    if ! [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
+		if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}" -o "/config/temp/${DeezerArtistID}-temp-info.json"; then
+			jq "." "/config/temp/${DeezerArtistID}-temp-info.json" > "/config/cache/${DeezerArtistID}-info.json"
+			echo "AUDIO CACHE :: Caching Artist Info..."
+			rm "/config/temp/${DeezerArtistID}-temp-info.json"
+		else
+			echo "AUDIO CACHE :: ERROR: Cannot communicate with Deezer"
+		fi
+    fi
+
+    if ! [ -f "/config/cache/${DeezerArtistID}-related.json" ]; then
+		if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}/related" -o "/config/temp/${DeezerArtistID}-temp-related.json"; then
+			jq "." "/config/temp/${DeezerArtistID}-temp-related.json" > "/config/cache/${DeezerArtistID}-related.json"
+			echo "AUDIO CACHE :: Caching Artis tRelated Info..."
+			rm "/config/temp/${DeezerArtistID}-temp-related.json"
+		else
+			echo "AUDIO CACHE :: ERROR: Cannot communicate with Deezer"
+		fi
+    fi	
+    # ArtistAlbumCache
+    if [ -d "temp" ]; then
+        rm -rf "temp"
+    fi
+
+}
+
+ArtistAlbumCache () {
+    if [ ! -f "/config/cache/$DeezerArtistID-checked" ]; then
+		if [ ! -f "/config/cache/$DeezerArtistID-album.json" ]; then
+			DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
+			if [ -z "$DeezerArtistAlbumList" ]; then
+				echo "AUDIO CACHE :: ERROR: Unable to retrieve albums from Deezer"										
+			fi
+		fi				
+	else
+		DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
+		newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[].id" | wc -l)"
+		if [ -z "$DeezerArtistAlbumList" ] || [ -z "${newalbumlist}" ]; then
+			echo "AUDIO CACHE :: $LidArtistNameCap :: ERROR: Unable to retrieve albums from Deezer"										
+		fi
+	fi
+
+    if [ ! -f "/config/cache/$DeezerArtistID-checked" ]; then
+        DeezerArtistAlbumListID=($(echo "${DeezerArtistAlbumList}" | jq ".data | .[].id"))
+        DeezerArtistName=($(echo "${DeezerArtistAlbumList}" | jq ".data | .[].id"))
+        for id in ${!DeezerArtistAlbumListID[@]}; do
+            albumid="${DeezerArtistAlbumListID[$id]}"
+            if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "/config/temp/${albumid}-temp-album.json"; then
+                sleep 0.5
+                albumtitle="$(cat "/config/temp/${albumid}-temp-album.json" | jq ".title")"
+                actualtracktotal=$(cat "/config/temp/${albumid}-temp-album.json" | jq -r ".tracks.data | .[] | .id" | wc -l)
+                sanatizedalbumtitle="$(echo "$albumtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/bash /config/scripts\L&/g')"
+                jq ". + {\"sanatized_album_name\": \"$sanatizedalbumtitle\"} + {\"actualtracktotal\": $actualtracktotal}" "/config/temp/${albumid}-temp-album.json" > "/config/temp/${albumid}-album.json"
+                rm "/config/temp/${albumid}-temp-album.json"
+                sleep 0.1
+            else
+                echo "AUDIO CACHE :: $LidArtistNameCap :: Error getting album information"
+            fi				
+        done
+        jq -s '.' /config/temp/*-album.json > "/config/cache/$DeezerArtistID-albumlist.json"
+    	touch "/config/cache/$DeezerArtistID-checked"
+    fi
+}
+
+CreateLinks () {
+    echo "Creating symlinks to prevent duplicates"
+    # folder="$(find "$LIBRARY" -iname "*($DeezerArtistID)" -type d)"
+    find "$LIBRARY" -iname "*.m4a" -type f -exec bash -c '
+        for file do
+            flaclink="${file%.m4a}.flac"
+            mp3link="${file%.m4a}.mp3"
+            ln -s "$file" "$flaclink"
+            ln -s "$file" "$mp3link"
+        done' bash {} + &> /dev/null
+}
+
+RemoveLinks () {
+    echo "Removing duplicate symlinks Links"
+    # folder="$(find "$LIBRARY" -iname "*($DeezerArtistID)" -type d)"
+    find "$LIBRARY" -iname "*.m4a" -type f -exec bash -c '
+        for file do
+            flaclink="${file%.m4a}.flac"
+            mp3link="${file%.m4a}.mp3"
+            unlink "$flaclink"
+            unlink "$mp3link"
+        done' bash {} + &> /dev/null
+}
+
+ProcessArtistList () {
+    for id in ${!list[@]}; do
+        artistnumber=$(( $id + 1 ))
+        artistid="${list[$id]}"
+        DeezerArtistID="$artistid"
+        echo "$artistnumber :: $artistid"
+        ProcessArtist
+    done
+}
+
+ProcessArtist () {
+    DeezerArtistID="$artistid"
+    dlurl="https://www.deezer.com/en/artist/${DeezerArtistID}"
+    ArtistCache
+    amacomplete="$(cat "/config/cache/${DeezerArtistID}-info.json" | jq -r ".ama")"
+    if [ "$amacomplete" = "true" ]; then
+        echo "ARCHIVING :: $DeezerArtistID :: Already archived..."
+    else
+        CreateLinks
+        AlbumDL
+        RemoveLinks
+        bash /config/scripts/recurrsive.bash "$LIBRARY" "$NumberConcurrentProcess"
+        if [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
+            echo "ARTIST CACHE :: Updating with successful archive information..."
+            mv "/config/cache/${DeezerArtistID}-info.json" "/config/cache/${DeezerArtistID}-temp-info.json"
+            jq ". + {\"ama\": \"true\"}" "/config/cache/${DeezerArtistID}-temp-info.json" > "/config/cache/${DeezerArtistID}-info.json"
+            rm "/config/cache/${DeezerArtistID}-temp-info.json"
+        fi
+
+    fi
+}
+
+ProcessArtistRelated () {
+    if  [ "$RELATED_ARTIST_RELATED" = "true" ]; then
+        list=($(ls /config/list | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+    else
+        list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+    fi
+    for id in ${!list[@]}; do
+        artistnumber=$(( $id + 1 ))
+        artistid="${list[$id]}"
+        DeezerArtistID="$artistid"
+        if [ -f "/config/cache/${DeezerArtistID}-related.json" ]; then
+            artistrelatedfile="$(cat "/config/cache/${DeezerArtistID}-related.json")"
+            artistrelatedcount="$(echo "$artistrelatedfile" | jq -r ".total")"
+            if [ "$artistrelatedcount" -gt "0" ]; then
+                echo  "Processing $artistrelatedcount Related artists..."
+                artistrelatedidlist=($(echo "$artistrelatedfile" | jq -r ".data | .[].id"))
+                for id in ${!artistrelatedidlist[@]}; do
+                    relatedartistnumber=$(( $id + 1 ))
+                    artistrelatedid="${artistrelatedidlist[$id]}"
+                    if [ ! -f "/config/list/$artistrelatedid-related" ]; then
+                        touch "/config/list/$artistrelatedid-related"
+                    fi
+                done
+            fi
+        fi
+    done
+}
+
+CleanCacheCheck () {
+	if [ -d "cache" ]; then
+		if [ -f "/config/cache/cleanup-cache-check" ]; then
+			rm "/config/cache/cleanup-cache-check"
+		fi
+		touch -d "168 hours ago" "/config/cache/cleanup-cache-check"
+        touch -d "730 hours ago" "/config/cache/cleanup-cache-related-check"
+        if find "cache" -type f -iname "*-info.json" -not -newer "/config/cache/cleanup-cache-check" | read; then
+			cachechecklist=($(find "cache" -type f -iname "*.json" -not -newer "/config/cache/cleanup-cache-check" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+            for id in ${!cachechecklist[@]}; do
+                listprocess=$(( $id + 1 ))
+                artistid="${cachechecklist[$id]}"
+                onlinealbumlistcount="$(curl -s "https://api.deezer.com/artist/${artistid}" |  jq -r '.nb_album')"
+                sleep 1
+                cachealbumlistcount="$(cat "/config/cache/$artistid-info.json" | jq -r '.nb_album')"
+                if [ "${onlinealbumlistcount}" -ne "${cachealbumlistcount}" ]; then
+                    echo "Cache Artist ID: $artistid invalid... removing..."
+                    rm "/config/cache/$artistid-info.json"
+                else
+                    echo "Cache Artist ID: $artistid still valid... updating timestamp..."
+                    touch "/config/cache/$artistid-info.json"
+                fi
+            done
+		fi
+        if find "cache" -type f -iname "*-related.json" -not -newer "/config/cache/cleanup-cache-related-check" | read; then
+            echo "Removing Cached Artist Related Info files older than 730 Hours..."
+			find "cache" -type f -iname "*-related.json" -not -newer "/config/cache/cleanup-cache-related-check" -delete
+        fi
+        if [ -f "/config/cache/cleanup-cache-check" ]; then
+			rm "/config/cache/cleanup-cache-check"
+		fi
+	fi
+}
+
+echo "STARTING ENGINE"
+for (( ; ; )); do
+   let i++
+    configuration
+    echo "Pres CTRL+C to stop..."
+    echo ""
+    echo ""
+    CleanCacheCheck
+    LidarrListImport
+    if ls /config/list | read; then
+        if ls /config/list -I "*-related" -I "*-lidarr" | read; then
+            listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+            listtext="$listcount Artists"
+        else
+            listtext="0 Artists"
+        fi
+        if ls /config/list/*-related 2> /dev/null | read; then
+            listrelatedcount="$(ls /config/list/*-related | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+            relatedtext="$listrelatedcount Related Artists"
+        else
+            relatedtext="0 Related Artists"
+        fi
+        if ls /config/list/*-lidarr 2> /dev/null | read; then
+            listlidarrcount="$(ls /config/list/*-lidarr | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+            lidarrtext="$listlidarrcount Lidarr Artists"
+        else
+            lidarrtext="0 Lidarr Artists"
+        fi
+        if [ "$RELATED_ARTIST" = "true" ]; then
+            listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        else
+            list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+            listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        fi
+
+        if [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "true" ]; then
+            list=($(ls /config/list | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+            echo "Processing :: $listtext & $lidarrtext & $relatedtext"
+        elif [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "false" ]; then
+            list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+            echo "Processing :: $listtext & $lidarrtext"
+        elif [ "$LidarrListImport" = "false" ] && [ "$RELATED_ARTIST" = "true" ]; then
+            echo "Processing :: $listtext & $relatedtext"
+            list=($(ls /config/list -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        else
+            echo "Processing :: $listtext"
+            list=($(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        fi
+        ProcessArtistList
+        if  [ "$RELATED_ARTIST" = "true" ]; then
+            ProcessArtistRelated
+        fi
+    else
+        echo "No artists to process, add artist files to list directory"
+    fi
+    echo ""
+    echo ""
+done
+
+exit 0
