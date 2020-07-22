@@ -123,8 +123,8 @@ AlbumDL () {
 }
 
 ArtistCache () {
-    if [ ! -d "temp" ]; then
-        mkdir -p "temp"
+    if [ ! -d "/config/temp" ]; then
+        mkdir -p "/config/temp"
     fi
 
     if ! [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
@@ -147,8 +147,8 @@ ArtistCache () {
 		fi
     fi	
     # ArtistAlbumCache
-    if [ -d "temp" ]; then
-        rm -rf "temp"
+    if [ -d "/config/temp" ]; then
+        rm -rf "/config/temp"
     fi
 
 }
