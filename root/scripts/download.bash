@@ -276,14 +276,14 @@ ProcessArtistRelated () {
 }
 
 CleanCacheCheck () {
-	if [ -d "cache" ]; then
+	if [ -d "/config/cache" ]; then
 		if [ -f "/config/cache/cleanup-cache-check" ]; then
 			rm "/config/cache/cleanup-cache-check"
 		fi
 		touch -d "168 hours ago" "/config/cache/cleanup-cache-check"
         touch -d "730 hours ago" "/config/cache/cleanup-cache-related-check"
-        if find "cache" -type f -iname "*-info.json" -not -newer "/config/cache/cleanup-cache-check" | read; then
-			cachechecklist=($(find "cache" -type f -iname "*.json" -not -newer "/config/cache/cleanup-cache-check" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        if find "/config/cache" -type f -iname "*-info.json" -not -newer "/config/cache/cleanup-cache-check" | read; then
+			cachechecklist=($(find "/config/cache" -type f -iname "*.json" -not -newer "/config/cache/cleanup-cache-check" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
             for id in ${!cachechecklist[@]}; do
                 listprocess=$(( $id + 1 ))
                 artistid="${cachechecklist[$id]}"
@@ -299,9 +299,9 @@ CleanCacheCheck () {
                 fi
             done
 		fi
-        if find "cache" -type f -iname "*-related.json" -not -newer "/config/cache/cleanup-cache-related-check" | read; then
+        if find "/config/cache" -type f -iname "*-related.json" -not -newer "/config/cache/cleanup-cache-related-check" | read; then
             echo "Removing Cached Artist Related Info files older than 730 Hours..."
-			find "cache" -type f -iname "*-related.json" -not -newer "/config/cache/cleanup-cache-related-check" -delete
+			find "/config/cache" -type f -iname "*-related.json" -not -newer "/config/cache/cleanup-cache-related-check" -delete
         fi
         if [ -f "/config/cache/cleanup-cache-check" ]; then
 			rm "/config/cache/cleanup-cache-check"
@@ -310,55 +310,59 @@ CleanCacheCheck () {
 }
 
 echo "STARTING ENGINE"
-for (( ; ; )); do
-   let i++
-    configuration
-    echo "Pres CTRL+C to stop..."
-    echo ""
-    echo ""
-    CleanCacheCheck
-    LidarrListImport
-    if ls /config/list | read; then
-        if ls /config/list -I "*-related" -I "*-lidarr" | read; then
-            listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
-            listtext="$listcount Artists"
-        else
-            listtext="0 Artists"
-        fi
-        if ls /config/list/*-related 2> /dev/null | read; then
-            listrelatedcount="$(ls /config/list/*-related | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
-            relatedtext="$listrelatedcount Related Artists"
-        else
-            relatedtext="0 Related Artists"
-        fi
-        if ls /config/list/*-lidarr 2> /dev/null | read; then
-            listlidarrcount="$(ls /config/list/*-lidarr | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
-            lidarrtext="$listlidarrcount Lidarr Artists"
-        else
-            lidarrtext="0 Lidarr Artists"
-        fi
-        if [ "$RELATED_ARTIST" = "true" ]; then
-            listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
-        else
-            list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
-            listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
-        fi
+processid="$(pgrep -f start.bash)"
+echo "To kill script, use the following command:"
+echo "kill -9 $processid"
+configuration
+echo ""
+echo ""
+CleanCacheCheck
+LidarrListImport
+if ls /config/list | read; then
+    if ls /config/list -I "*-related" -I "*-lidarr" | read; then
+        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        listtext="$listcount Artists"
+    else
+        listtext="0 Artists"
+    fi
 
-        if [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "true" ]; then
-            list=($(ls /config/list | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
-            echo "Processing :: $listtext & $lidarrtext & $relatedtext"
-        elif [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "false" ]; then
-            list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
-            echo "Processing :: $listtext & $lidarrtext"
-        elif [ "$LidarrListImport" = "false" ] && [ "$RELATED_ARTIST" = "true" ]; then
-            echo "Processing :: $listtext & $relatedtext"
-            list=($(ls /config/list -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
-        else
-            echo "Processing :: $listtext"
-            list=($(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
-        fi
-        ProcessArtistList
-        if  [ "$RELATED_ARTIST" = "true" ]; then
+    if ls /config/list/*-related 2> /dev/null | read; then
+        listrelatedcount="$(ls /config/list/*-related | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        relatedtext="$listrelatedcount Related Artists"
+    else
+        relatedtext="0 Related Artists"
+    fi
+
+    if ls /config/list/*-lidarr 2> /dev/null | read; then
+        listlidarrcount="$(ls /config/list/*-lidarr | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        lidarrtext="$listlidarrcount Lidarr Artists"
+    else
+        lidarrtext="0 Lidarr Artists"
+    fi
+
+    if [ "$RELATED_ARTIST" = "true" ]; then
+        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+    else
+        list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+    fi
+
+    if [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "true" ]; then
+        list=($(ls /config/list | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        echo "Processing :: $listtext & $lidarrtext & $relatedtext"
+    elif [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "false" ]; then
+        list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        echo "Processing :: $listtext & $lidarrtext"
+    elif [ "$LidarrListImport" = "false" ] && [ "$RELATED_ARTIST" = "true" ]; then
+        echo "Processing :: $listtext & $relatedtext"
+        list=($(ls /config/list -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+    else
+        echo "Processing :: $listtext"
+        list=($(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+    fi
+
+    ProcessArtistList
+    if  [ "$RELATED_ARTIST" = "true" ]; then
             ProcessArtistRelated
         fi
     else
@@ -366,6 +370,7 @@ for (( ; ; )); do
     fi
     echo ""
     echo ""
-done
 
+
+echo "STOPPING ENGINE"
 exit 0
