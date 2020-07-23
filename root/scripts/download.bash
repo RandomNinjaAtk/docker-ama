@@ -6,7 +6,13 @@ export LANG=C.UTF-8
 configuration () {
 	echo "######################################### CONFIGURATION VERIFICATION #########################################"
 	error=0
-    dlquality="FLAC"
+
+    if [ "$AUTOSTART" = "true" ]; then
+        echo "Automatic Start: ENABLED"
+    else
+        echo "Automatic Start: DISABLED"
+    fi
+    
     if [ -d "$LIBRARY" ]; then
 		echo "LIBRARY Location: $LIBRARY"
         sed -i "s%/downloadfolder%$LIBRARY%g" "/xdg/deemix/config.json"
@@ -51,9 +57,33 @@ configuration () {
 
     if [ ! -z "$FORMAT" ]; then
         echo "Download Format: $FORMAT"
+        if [ "$FORMAT" = "FLAC" ]; then
+            dlquality="FLAC"
+        elif [ "$FORMAT" = "OPUS" ]; then
+            dlquality="FLAC"
+            echo "Download File Bitrate: $ConversionBitrate"
+        elif [ "$FORMAT" = "AAC" ]; then
+            dlquality="FLAC"
+            echo "Download File Bitrate: $ConversionBitrate"
+        elif [ "$FORMAT" = "MP3" ]; then
+            if [ "$ConversionBitrate" = "320" ]; then
+                dlquality="320"
+                echo "Download File Bitrate: $ConversionBitrate"
+            elif [ "$ConversionBitrate" = "128" ]; then
+                dlquality="128"
+                echo "Download File Bitrate: $ConversionBitrate"
+            else
+                dlquality="FLAC"
+                echo "Download File Bitrate: $ConversionBitrate"
+            fi
+        fi
+
     else
+        dlquality="FLAC"
+        ConversionBitrate="320"
         FORMAT="AAC"
         echo "Download Format: $FORMAT"
+        echo "Download File Bitrate: $ConversionBitrate"
     fi
 
     if [ ! -z "$FilePermissions" ]; then
@@ -104,11 +134,12 @@ LidarrListImport () {
 		mbid="${MBArtistID[$id]}"
         deezerartisturlcount="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url" | wc -l)"
         deezerartisturl=($(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url"))
-        echo "Processing $deezerartisturlcount Lidarr Artist Links"
         for url in ${!deezerartisturl[@]}; do
 			deezerid="${deezerartisturl[$url]}"
 			lidarrdeezerid=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
-            touch "/config/list/$lidarrdeezerid-lidarr"
+            if [ ! -f "/config/list/$lidarrdeezerid-lidarr" ]; then
+                echo -n "$mbid" > "/config/list/$lidarrdeezerid-lidarr"
+            fi
         done
     done
 }
