@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 from mutagen.mp4 import MP4, MP4Cover
-filename = os.environ['filem4a']
+filename = os.environ['filedest']
 bpm = int(os.environ['songbpm'])
 rtng = int(os.environ['songlyricrating'])
 trackn = int(os.environ['songtracknumber'])

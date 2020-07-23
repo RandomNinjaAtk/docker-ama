@@ -57,27 +57,39 @@ configuration () {
 
     if [ ! -z "$FORMAT" ]; then
         echo "Download Format: $FORMAT"
-        if [ "$FORMAT" = "FLAC" ]; then
+        if [ "$FORMAT" = "ALAC" ]; then
             dlquality="FLAC"
+            options="-c:a alac -movflags faststart"
+            setextension="m4a"
+        elif [ "$FORMAT" = "FLAC" ]; then
+            dlquality="FLAC"
+            setextension="flac"
         elif [ "$FORMAT" = "OPUS" ]; then
             dlquality="FLAC"
+            options="-acodec libopus -ab ${bitConversionBitratekrate}k -application audio -vbr off"
+		    setextension="opus"
             echo "Download File Bitrate: $ConversionBitrate"
         elif [ "$FORMAT" = "AAC" ]; then
             dlquality="FLAC"
+            options="-c:a libfdk_aac -b:a ${ConversionBitrate}k -movflags faststart"
+            setextension="m4a"
             echo "Download File Bitrate: $ConversionBitrate"
         elif [ "$FORMAT" = "MP3" ]; then
             if [ "$ConversionBitrate" = "320" ]; then
                 dlquality="320"
+                setextension="mp3"
                 echo "Download File Bitrate: $ConversionBitrate"
             elif [ "$ConversionBitrate" = "128" ]; then
                 dlquality="128"
+                setextension="mp3"
                 echo "Download File Bitrate: $ConversionBitrate"
             else
                 dlquality="FLAC"
+                options="-acodec libmp3lame -ab ${ConversionBitrate}k"
+                setextension="mp3"
                 echo "Download File Bitrate: $ConversionBitrate"
             fi
         fi
-
     else
         dlquality="FLAC"
         ConversionBitrate="320"
@@ -184,6 +196,232 @@ ArtistCache () {
 
 }
 
+ConverterTagger () {
+
+    flacfilecount=$(find "$LIBRARY" -iname "*.flac" | wc -l)
+    mp3filecount=$(find "$LIBRARY" -iname "*.mp3" | wc -l)
+    echo "Number of FLAC files to process $flacfilecount"
+    echo "Number of MP3 files to process $mp3filecount"
+
+
+    echo "Processing Files using $NumberConcurrentProcess Threads"
+    N=$NumberConcurrentProcess
+    (
+    find "$LIBRARY" -iname "*.flac" -print0 | while IFS= read -r -d '' file; do
+    ((i=i%N)); ((i++==0)) && wait
+    ProcessFlacFiles "$file" &
+    done
+    wait
+    )
+    wait
+
+    if [ "$FORMAT" == "ALAC" ]; then
+        ORIGFORMAT="$FORMAT"
+        FORMAT="AAC"
+    else
+        ORIGFORMAT="$FORMAT"
+    fi
+    (
+    find "$LIBRARY" -iname "*.mp3" -print0 | while IFS= read -r -d '' file; do
+    ((i=i%N)); ((i++==0)) && wait
+    ProcessMP3Files "$file" &
+    done
+    wait
+    )
+    wait
+    if [ ! -z "$ORIGFORMAT" ]; then
+        FORMAT="$ORIGFORMAT"
+    fi
+
+}
+
+Tag () {
+    file="$1"
+    extension="${1##*.}"
+    filedest="${file%.$extension}.$setextension"
+    filelrc="${file%.$extension}.lrc"
+    cover="$(dirname "$1")/folder.jpg"
+    if [ ! -f "$file" ]; then
+        echo "ERROR: EXITING :: $file"
+        exit 0
+    fi
+    tags="$(ffprobe -v quiet -print_format json -show_format "$file" | jq -r '.[] | .tags')"
+    if [ "$extension" = "flac" ]; then
+        songtitle="$(echo "$tags" | jq -r ".TITLE")"
+        songalbum="$(echo "$tags" | jq -r ".ALBUM")"
+        songartist="$(echo "$tags" | jq -r ".ARTIST")"
+        songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
+        songoriginalbpm="$(echo "$tags" | jq -r ".BPM")"
+        songbpm=${songoriginalbpm%.*}
+        songcopyright="$(echo "$tags" | jq -r ".PUBLISHER")"
+        songtracknumber="$(echo "$tags" | jq -r ".track")"
+        songtracktotal="$(echo "$tags" | jq -r ".TRACKTOTAL")"
+        songdiscnumber="$(echo "$tags" | jq -r ".disc")"
+        songdisctotal="$(echo "$tags" | jq -r ".DISCTOTAL")"
+        songlyricrating="$(echo "$tags" | jq -r ".ITUNESADVISORY")"
+        songcompilation="$(echo "$tags" | jq -r ".COMPILATION")"
+        songdate="$(echo "$tags" | jq -r ".DATE")"
+        songyear="${songdate:0:4}"
+        songgenre="$(echo "$tags" | jq -r ".GENRE" | cut -f1 -d";")"
+        songcomposer="$(echo "$tags" | jq -r ".composer" | cut -f1 -d";")"
+        songisrc="ISRC: $(echo "$tags" | jq -r ".ISRC"); Source File: FLAC"
+    fi
+    if [ "$extension" = "mp3" ]; then
+        songtitle="$(echo "$tags" | jq -r ".title")"
+        songalbum="$(echo "$tags" | jq -r ".album")"
+        songartist="$(echo "$tags" | jq -r ".artist")"
+        songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
+        songoriginalbpm="$(echo "$tags" | jq -r ".TBPM")"
+        songbpm=${songoriginalbpm%.*}
+        songcopyright="$(echo "$tags" | jq -r ".publisher")"
+        songtracknumber="$(echo "$tags" | jq -r ".track" | cut -f1 -d "/")"
+        songtracktotal="$(echo "$tags" | jq -r ".track" | cut -f2 -d "/")"
+        songdiscnumber="$(echo "$tags" | jq -r ".disc" | cut -f1 -d "/")"
+        songdisctotal="$(echo "$tags" | jq -r ".disc" | cut -f2 -d "/")"
+        songlyricrating="$(echo "$tags" | jq -r ".ITUNESADVISORY")"
+        songcompilation="$(echo "$tags" | jq -r ".compilation")"
+        songdate="$(echo "$tags" | jq -r ".date")"
+        songyear="${songdate:0:4}"
+        songgenre="$(echo "$tags" | jq -r ".genre" | cut -f1 -d";")"
+        songcomposer="$(echo "$tags" | jq -r ".composer" | cut -f1 -d";")"
+        songisrc="ISRC: $(echo "$tags" | jq -r ".TSRC"); Source File: MP3"
+    fi
+
+    if [ -f "$filelrc" ]; then
+        songsyncedlyrics="$(cat "$filelrc")"
+    else
+        songsyncedlyrics=""
+    fi
+
+    if [ "$songtitle" = "null" ]; then
+        songtitle=""
+    fi
+
+    if [ "$songalbum" = "null" ]; then
+        songalbum=""
+    fi
+
+    if [ "$songartist" = "null" ]; then
+        songartist=""
+    fi
+
+    if [ "$songartistalbum" = "null" ]; then
+        songartistalbum=""
+    fi
+
+    if [ "$songbpm" = "null" ]; then
+        songbpm=""
+    fi
+
+    if [ "$songcopyright" = "null" ]; then
+        songcopyright=""
+    fi
+
+    if [ "$songtracknumber" = "null" ]; then
+        songtracknumber=""
+    fi
+
+    if [ "$songtracktotal" = "null" ]; then
+        songtracktotal=""
+    fi
+
+    if [ "$songdiscnumber" = "null" ]; then
+        songdiscnumber=""
+    fi
+
+    if [ "$songdisctotal" = "null" ]; then
+        songdisctotal=""
+    fi
+
+    if [ "$songcompliation" = "null" ]; then
+        songcompliation=""
+    fi
+
+    if [ "$songyear" = "null" ]; then
+        songyear=""
+    fi
+
+    if [ "$songgenre" = "null" ]; then
+        songgenre=""
+    fi
+
+    if [ "$songcomposer" = "null" ]; then
+        songcomposer=""
+    fi
+
+    if [ -f "$file" ]; then
+        if [ ! -f "$filedest" ]; then
+            if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options "$filedest" < /dev/null; then
+                if [ -f "$filedest" ]; then
+                    echo "Encoding Succcess :: $FORMAT :: $filedest"
+                fi
+            else
+                echo "Error"
+            fi
+        fi
+        if [ ! -f "$filedest" ]; then
+            echo "ERROR: EXITING :: $filedest"
+            exit 0
+        fi
+    fi
+    if [ "$setextension" == "m4a" ]; then
+        echo "Tagging: $filedest"
+        export filedest
+        export songtitle
+        export songalbum
+        export songartist
+        export songartistalbum
+        export songbpm
+        export songcopyright
+        export songtracknumber
+        export songtracktotal
+        export songdiscnumber
+        export songdisctotal
+        export songlyricrating
+        export songsyncedlyrics
+        export songcompilation
+        export songyear
+        export songgenre
+        export songcomposer
+        export songisrc
+        export cover
+        python3 /config/scripts/tag.py
+        echo "Tagged: $filedest"
+    fi
+    if [ -f "$filedest" ]; then
+        if [ -f "$file" ]; then
+            rm "$file"
+        fi
+    fi
+
+}
+
+ProcessFlacFiles () {
+
+    if [ ! -f "${file%.flac}.$setextension" ]; then
+        Tag "$file"
+    fi
+    if [ -f "${file%.flac}.$setextension" ]; then
+        echo "Deleted: $file"
+    else
+        echo "Failed Encoding and Tagging: $file"
+    fi
+   
+}
+
+ProcessMP3Files () {
+
+    if [ ! -f "${file%.mp3}.$setextension" ]; then
+        Tag "$file"
+    fi
+    if [ -f "${file%.mp3}.$setextension" ]; then
+        echo "Deleted: $file"
+    else
+        echo "Failed Encoding and Tagging: $file"
+    fi
+   
+}
+
 ArtistAlbumCache () {
     if [ ! -f "/config/cache/$DeezerArtistID-checked" ]; then
 		if [ ! -f "/config/cache/$DeezerArtistID-album.json" ]; then
@@ -232,6 +470,18 @@ CreateLinks () {
             ln -s "$file" "$flaclink"
             ln -s "$file" "$mp3link"
         done' bash {} + &> /dev/null
+    find "$LIBRARY" -iname "*.opus" -type f -exec bash -c '
+        for file do
+            flaclink="${file%.opus}.flac"
+            mp3link="${file%.opus}.mp3"
+            ln -s "$file" "$flaclink"
+            ln -s "$file" "$mp3link"
+        done' bash {} + &> /dev/null
+    find "$LIBRARY" -iname "*.flac" -type f -exec bash -c '
+        for file do
+            mp3link="${file%.flac}.mp3"
+            ln -s "$file" "$mp3link"
+        done' bash {} + &> /dev/null
 }
 
 RemoveLinks () {
@@ -242,6 +492,18 @@ RemoveLinks () {
             flaclink="${file%.m4a}.flac"
             mp3link="${file%.m4a}.mp3"
             unlink "$flaclink"
+            unlink "$mp3link"
+        done' bash {} + &> /dev/null
+    find "$LIBRARY" -iname "*.opus" -type f -exec bash -c '
+        for file do
+            flaclink="${file%.opus}.flac"
+            mp3link="${file%.opus}.mp3"
+            unlink "$flaclink"
+            unlink "$mp3link"
+        done' bash {} + &> /dev/null
+    find "$LIBRARY" -iname "*.flac" -type f -exec bash -c '
+        for file do
+            mp3link="${file%.flac}.mp3"
             unlink "$mp3link"
         done' bash {} + &> /dev/null
 }
@@ -267,7 +529,17 @@ ProcessArtist () {
         CreateLinks
         AlbumDL
         RemoveLinks
-        bash /config/scripts/recurrsive.bash "$LIBRARY" "$NumberConcurrentProcess"
+        if [[ "$FORMAT" == "AAC" || "$FORMAT" = "OPUS" || "$FORMAT" = "ALAC" ]]; then
+            ConverterTagger
+        elif [ "$FORMAT" == "MP3" ]; then
+            if [ "$ConversionBitrate" == "320" ]; then
+                sleep 0.01
+            elif [ "$ConversionBitrate" == "128" ]; then
+                sleep 0.01
+            else
+                ConverterTagger
+            fi
+        fi
         if [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
             echo "ARTIST CACHE :: Updating with successful archive information..."
             mv "/config/cache/${DeezerArtistID}-info.json" "/config/cache/${DeezerArtistID}-temp-info.json"
