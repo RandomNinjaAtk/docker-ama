@@ -341,9 +341,13 @@ CleanCacheCheck () {
 }
 
 echo "STARTING ENGINE"
-processid="$(pgrep -f start.bash)"
+processstartid="$(pgrep -f /config/scripts/start.bash)"
+processdownloadid="$(pgrep -f /config/scripts/download.bash)"
 echo "To kill script, use the following command:"
-echo "kill -9 $processid"
+echo "kill -9 $processstartid"
+echo "kill -9 $processdownloadid"
+echo ""
+echo ""
 configuration
 echo ""
 echo ""
