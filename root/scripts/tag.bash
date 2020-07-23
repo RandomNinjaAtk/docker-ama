@@ -121,7 +121,7 @@ if [ -f "$file" ]; then
         if [ "$FORMAT" = "AAC" ]; then
             options="-c:a libfdk_aac -b:a 320k -movflags faststart"
         fi
-        if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options -metadata compilation="0" "$filem4a" < /dev/null; then
+        if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options "$filem4a" < /dev/null; then
             if [ -f "$filem4a" ]; then
                 echo "Encoding Succcess :: $filem4a"
             fi
