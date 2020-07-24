@@ -35,7 +35,7 @@ configuration () {
 		error=1
 	fi
 
-    if [ ! -z "$ARL_TOKEN" ]; then
+    if [ ! -z "$NumberConcurrentProcess" ]; then
         echo "Number of Concurrent Processes: $NumberConcurrentProcess"
         sed -i "s%\"queueConcurrency\": 3%\"queueConcurrency\": $NumberConcurrentProcess%g" "/xdg/deemix/config.json"
     else
@@ -128,7 +128,7 @@ configuration () {
            error=1
         fi
     else
-        echo "Lidarr List Import: ENABLED"
+        echo "Lidarr List Import: DISABLED"
     fi
 
     if [ $error = 1 ]; then
