@@ -340,8 +340,8 @@ Tag () {
         songdisctotal=""
     fi
 
-    if [ "$songcompliation" = "null" ]; then
-        songcompliation=""
+    if [ "$songcompilation" = "null" ]; then
+        songcompilation="0"
     fi
 
     if [ "$songyear" = "null" ]; then
