@@ -1,25 +1,50 @@
 #!/usr/bin/env python3
 import os
+import argparse
 from mutagen.mp4 import MP4, MP4Cover
-filename = os.environ['filedest']
-bpm = int(os.environ['songbpm'])
-rtng = int(os.environ['songlyricrating'])
-trackn = int(os.environ['songtracknumber'])
-trackt = int(os.environ['songtracktotal'])
-discn = int(os.environ['songdiscnumber'])
-disct = int(os.environ['songdisctotal'])
-compilation = int(os.environ['songcompilation'])
-copyrightext = os.environ['songcopyright']
-syncedlyrics = os.environ['songsyncedlyrics']
-title = os.environ['songtitle']
-album = os.environ['songalbum']
-artist = os.environ['songartist']
-artistalbum = os.environ['songartistalbum']
-year = os.environ['songyear']
-genre = os.environ['songgenre']
-composer = os.environ['songcomposer']
-iscr = os.environ['songisrc']
-picture = os.environ['cover']
+
+parser = argparse.ArgumentParser(description='Optional app description')
+# Argument
+parser.add_argument('--file', help='A required integer positional argument')
+parser.add_argument('--songtitle', help='A required integer positional argument')
+parser.add_argument('--songalbum', help='A required integer positional argument')
+parser.add_argument('--songartist', help='A required integer positional argument')
+parser.add_argument('--songartistalbum', help='A required integer positional argument')
+parser.add_argument('--songbpm', help='A required integer positional argument')
+parser.add_argument('--songcopyright', help='A required integer positional argument')
+parser.add_argument('--songtracknumber', help='A required integer positional argument')
+parser.add_argument('--songtracktotal', help='A required integer positional argument')
+parser.add_argument('--songdiscnumber', help='A required integer positional argument')
+parser.add_argument('--songdisctotal', help='A required integer positional argument')
+parser.add_argument('--songcompilation', help='A required integer positional argument')
+parser.add_argument('--songlyricrating', help='A required integer positional argument')
+parser.add_argument('--songdate', help='A required integer positional argument')
+parser.add_argument('--songyear', help='A required integer positional argument')
+parser.add_argument('--songgenre', help='A required integer positional argument')
+parser.add_argument('--songcomposer', help='A required integer positional argument')
+parser.add_argument('--songisrc', help='A required integer positional argument')
+parser.add_argument('--songartwork', help='A required integer positional argument')
+args = parser.parse_args()
+filename = args.file
+bpm = int(args.songbpm)
+rtng = int(args.songlyricrating)
+trackn = int(args.songtracknumber)
+trackt = int(args.songtracktotal)
+discn = int(args.songdiscnumber)
+disct = int(args.songdisctotal)
+compilation = int(args.songcompilation)
+
+
+copyrightext = args.songcopyright
+title = args.songtitle
+album = args.songalbum
+artist = args.songartist
+artistalbum = args.songartistalbum
+year = args.songyear
+genre = args.songgenre
+composer = args.songcomposer
+iscr = args.songisrc
+picture = args.songartwork
 tracknumber = (trackn, trackt)
 discnumber = (discn, disct)
 audio = MP4(filename)
@@ -35,10 +60,11 @@ audio["tmpo"] = [bpm]
 audio["trkn"] = [tracknumber]
 audio["disk"] = [discnumber]
 audio["cprt"] = [copyrightext]
-audio["cpil"] = [compilation]
+if ( compilation == 1 ):
+   audio["cpil"] = [compilation]
 audio["stik"] = [1]
 audio["\xa9cmt"] = [iscr]
-with open(os.environ['cover'], "rb") as f:
+with open(picture, "rb") as f:
     audio["covr"] = [
         MP4Cover(f.read(), imageformat=MP4Cover.FORMAT_JPEG)
     ]

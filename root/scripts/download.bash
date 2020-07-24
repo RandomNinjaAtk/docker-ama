@@ -61,7 +61,6 @@ configuration () {
             dlquality="FLAC"
             options="-c:a alac -movflags faststart"
             setextension="m4a"
-            echo "TEST"
         elif [ "$FORMAT" = "FLAC" ]; then
             dlquality="FLAC"
             setextension="flac"
@@ -253,6 +252,7 @@ Tag () {
     file="$1"
     extension="${1##*.}"
     filedest="${file%.$extension}.$setextension"
+    filename="$(basename "$filedest")"
     filelrc="${file%.$extension}.lrc"
     cover="$(dirname "$1")/folder.jpg"
     if [ ! -f "$file" ]; then
@@ -347,6 +347,10 @@ Tag () {
         songbpm=""
     fi
 
+    if [ "$songlyricrating" = "null" ]; then
+        songlyricrating="0"
+    fi
+
     if [ "$songcopyright" = "null" ]; then
         songcopyright=""
     fi
@@ -386,50 +390,52 @@ Tag () {
     if [ "$songcomposer" = "null" ]; then
         songcomposer=""
     fi
-
     
     if [ -f "$file" ]; then
         if [ ! -f "$filedest" ]; then
             if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options "$filedest" < /dev/null; then
                 if [ -f "$filedest" ]; then
-                    echo "Encoding Succcess :: $FORMAT :: $filedest"
+                    echo "Encoding Succcess :: $FORMAT :: $filename"
                 fi
             else
                 echo "Error"
             fi
         fi
         if [ ! -f "$filedest" ]; then
-            echo "ERROR: EXITING :: $filedest"
+            echo "ERROR: EXITING :: $filename"
             exit 0
         fi
     fi
     if [ "$setextension" == "m4a" ]; then
-        echo "Tagging: $filedest"
-        export filedest
-        export songtitle
-        export songalbum
-        export songartist
-        export songartistalbum
-        export songbpm
-        export songcopyright
-        export songtracknumber
-        export songtracktotal
-        export songdiscnumber
-        export songdisctotal
-        export songlyricrating
-        export songsyncedlyrics
-        export songcompilation
-        export songyear
-        export songgenre
-        export songcomposer
-        export songisrc
-        export cover
-        python3 /config/scripts/tag.py
-        echo "Tagged: $filedest"
+        if [ -f "$filedest" ]; then
+            echo "Tagging: $filename"
+            python3 /config/scripts/tag.py \
+                --file "$filedest" \
+                --songtitle "$songtitle" \
+                --songalbum "$songalbum" \
+                --songartist "$songartist" \
+                --songartistalbum "$songartistalbum" \
+                --songbpm "$songbpm" \
+                --songcopyright "$songcopyright" \
+                --songtracknumber "$songtracknumber" \
+                --songtracktotal "$songtracktotal" \
+                --songdiscnumber "$songdiscnumber" \
+                --songdisctotal "$songdisctotal" \
+                --songcompilation "$songcompilation" \
+                --songlyricrating "$songlyricrating" \
+                --songdate "$songdate" \
+                --songyear "$songyear" \
+                --songgenre "$songgenre" \
+                --songcomposer "$songcomposer" \
+                --songisrc "$songisrc" \
+                --songartwork "$cover"
+            echo "Tagged: $filename"
+        fi
     fi
     if [ -f "$filedest" ]; then
         if [ -f "$file" ]; then
             rm "$file"
+            echo "Deleted: $file"
         fi
     fi
 
@@ -440,9 +446,7 @@ ProcessFlacFiles () {
     if [ ! -f "${file%.flac}.$setextension" ]; then
         Tag "$file"
     fi
-    if [ -f "${file%.flac}.$setextension" ]; then
-        echo "Deleted: $file"
-    else
+    if [ ! -f "${file%.flac}.$setextension" ]; then
         echo "Failed Encoding and Tagging: $file"
     fi
    
@@ -453,9 +457,7 @@ ProcessMP3Files () {
     if [ ! -f "${file%.mp3}.$setextension" ]; then
         Tag "$file"
     fi
-    if [ -f "${file%.mp3}.$setextension" ]; then
-        echo "Deleted: $file"
-    else
+    if [ ! -f "${file%.mp3}.$setextension" ]; then
         echo "Failed Encoding and Tagging: $file"
     fi
    
