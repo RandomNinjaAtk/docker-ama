@@ -207,11 +207,11 @@ ConverterTagger () {
     echo "Processing Files using $NumberConcurrentProcess Threads"
     N=$NumberConcurrentProcess
     (
-    find "$LIBRARY" -iname "*.flac" -print0 | while IFS= read -r -d '' file; do
-    ((i=i%N)); ((i++==0)) && wait
-    ProcessFlacFiles "$file" &
-    done
-    wait
+	    find "$LIBRARY" -iname "*.flac" -print0 | while IFS= read -r -d '' file; do
+	    ((i=i%N)); ((i++==0)) && wait
+	    ProcessFlacFiles "$file" &
+	    done
+	    wait
     )
     wait
 
@@ -224,18 +224,21 @@ ConverterTagger () {
         ORIGFORMAT="$FORMAT"
         origoptions="$options"
     fi
-    (
-    find "$LIBRARY" -iname "*.mp3" -print0 | while IFS= read -r -d '' file; do
-    ((i=i%N)); ((i++==0)) && wait
-    ProcessMP3Files "$file" &
-    done
-    wait
-    )
-    wait
-    if [ ! -z "$ORIGFORMAT" ]; then
-        FORMAT="$ORIGFORMAT"
-        options="$origoptions"
-    fi
+	if [ "$FORMAT" != "MP3" ]; then
+		N=$NumberConcurrentProcess
+		(
+			find "$LIBRARY" -iname "*.mp3" -print0 | while IFS= read -r -d '' file; do
+				((i=i%N)); ((i++==0)) && wait
+				ProcessMP3Files "$file" &
+			done
+			wait
+		)
+		wait
+	fi
+	if [ ! -z "$ORIGFORMAT" ]; then
+		FORMAT="$ORIGFORMAT"
+		options="$origoptions"
+	fi
 
 }
 
