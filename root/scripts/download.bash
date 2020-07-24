@@ -634,6 +634,9 @@ CleanCacheCheck () {
 		if [ -f "/config/cache/cleanup-cache-check" ]; then
 			rm "/config/cache/cleanup-cache-check"
 		fi
+        if [ -f "/config/cache/cleanup-cache-related-check" ]; then
+			rm "/config/cache/cleanup-cache-related-check"
+		fi
 		touch -d "168 hours ago" "/config/cache/cleanup-cache-check"
         touch -d "730 hours ago" "/config/cache/cleanup-cache-related-check"
         if find "/config/cache" -type f -iname "*-info.json" -not -newer "/config/cache/cleanup-cache-check" | read; then
@@ -657,11 +660,15 @@ CleanCacheCheck () {
             echo "Removing Cached Artist Related Info files older than 730 Hours..."
 			find "/config/cache" -type f -iname "*-related.json" -not -newer "/config/cache/cleanup-cache-related-check" -delete
         fi
-        if [ -f "/config/cache/cleanup-cache-check" ]; then
+	        if [ -f "/config/cache/cleanup-cache-check" ]; then
 			rm "/config/cache/cleanup-cache-check"
+		fi
+        	if [ -f "/config/cache/cleanup-cache-related-check" ]; then
+			rm "/config/cache/cleanup-cache-related-check"
 		fi
 	fi
 }
+
 
 echo "STARTING ENGINE"
 processstartid="$(pgrep -f /config/scripts/start.bash)"
