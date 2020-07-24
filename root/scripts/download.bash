@@ -685,7 +685,7 @@ configuration
 echo ""
 echo ""
 CleanCacheCheck
-if [ "$LidarrListImport" = "true" ]
+if [ "$LidarrListImport" = "true" ]; then
     LidarrListImport
 fi
 if ls /config/list | read; then
