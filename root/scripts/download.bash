@@ -559,6 +559,15 @@ ProcessArtistList () {
     done
 }
 
+Permissions () {
+
+    find "$LIBRARY" -type f -exec chmod $FilePermissions "{}" + &> /dev/null
+    find "$LIBRARY" -type f -exec chmod chown abc:abc "{}" + &> /dev/null
+    find "$LIBRARY" -type d -exec chmod $FolderPermissions "{}" + &> /dev/null
+    find "$LIBRARY" -type d -exec chmod chown -R abc:abc "{}" + &> /dev/null
+
+}
+
 ProcessArtist () {
     DeezerArtistID="$artistid"
     dlurl="https://www.deezer.com/en/artist/${DeezerArtistID}"
@@ -581,6 +590,7 @@ ProcessArtist () {
                 ConverterTagger
             fi
         fi
+        Permissions
         if [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
             echo "ARTIST CACHE :: Updating with successful archive information..."
             mv "/config/cache/${DeezerArtistID}-info.json" "/config/cache/${DeezerArtistID}-temp-info.json"
@@ -718,7 +728,7 @@ if ls /config/list | read; then
     fi
     echo ""
     echo ""
-
+    Permissions
 
 echo "STOPPING ENGINE"
 exit 0
