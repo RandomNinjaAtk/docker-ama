@@ -25,6 +25,7 @@ parser.add_argument('--songcomposer', help='A required integer positional argume
 parser.add_argument('--songisrc', help='A required integer positional argument')
 parser.add_argument('--songartwork', help='A required integer positional argument')
 args = parser.parse_args()
+
 filename = args.file
 bpm = int(args.songbpm)
 rtng = int(args.songlyricrating)
@@ -33,13 +34,12 @@ trackt = int(args.songtracktotal)
 discn = int(args.songdiscnumber)
 disct = int(args.songdisctotal)
 compilation = int(args.songcompilation)
-
-
 copyrightext = args.songcopyright
 title = args.songtitle
 album = args.songalbum
 artist = args.songartist
 artistalbum = args.songartistalbum
+date = args.songdate
 year = args.songyear
 genre = args.songgenre
 composer = args.songcomposer
@@ -47,12 +47,13 @@ iscr = args.songisrc
 picture = args.songartwork
 tracknumber = (trackn, trackt)
 discnumber = (discn, disct)
+
 audio = MP4(filename)
 audio["\xa9nam"] = [title]
 audio["\xa9alb"] = [album]
 audio["\xa9ART"] = [artist]
 audio["aART"] = [artistalbum]
-audio["\xa9day"] = [year]
+audio["\xa9day"] = [date]
 audio["\xa9gen"] = [genre]
 audio["\xa9wrt"] = [composer]
 audio["rtng"] = [rtng]
