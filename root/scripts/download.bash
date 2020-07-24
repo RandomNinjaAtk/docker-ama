@@ -218,8 +218,11 @@ ConverterTagger () {
     if [ "$FORMAT" == "ALAC" ]; then
         ORIGFORMAT="$FORMAT"
         FORMAT="AAC"
+        origoptions="$options"
+        options="-c:a libfdk_aac -b:a ${ConversionBitrate}k -movflags faststart"
     else
         ORIGFORMAT="$FORMAT"
+        origoptions="$options"
     fi
     (
     find "$LIBRARY" -iname "*.mp3" -print0 | while IFS= read -r -d '' file; do
@@ -231,6 +234,7 @@ ConverterTagger () {
     wait
     if [ ! -z "$ORIGFORMAT" ]; then
         FORMAT="$ORIGFORMAT"
+        options="$origoptions"
     fi
 
 }
