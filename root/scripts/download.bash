@@ -61,6 +61,7 @@ configuration () {
             dlquality="FLAC"
             options="-c:a alac -movflags faststart"
             setextension="m4a"
+            echo "TEST"
         elif [ "$FORMAT" = "FLAC" ]; then
             dlquality="FLAC"
             setextension="flac"
@@ -89,6 +90,9 @@ configuration () {
                 setextension="mp3"
                 echo "Download File Bitrate: $ConversionBitrate"
             fi
+        else
+            echo "ERROR: \"$FORMAT\" Does not match a required setting, check for trailing space..."
+            error=1
         fi
     else
         dlquality="FLAC"
@@ -161,7 +165,10 @@ AlbumDL () {
     chmod 0777 -R "${PathToDLClient}"
 	currentpwd="$(pwd)"
     if cd "${PathToDLClient}" && python3 -m deemix -b ${dlquality} "$dlurl" && cd "${currentpwd}"; then
-        echo "Complete"
+        echo "Downloads Complete"
+    else
+        echo "ERROR: DL CLient failed"
+        exit 1
     fi
 }
 
@@ -252,6 +259,26 @@ Tag () {
         echo "ERROR: EXITING :: $file"
         exit 0
     fi
+    #reset tags
+    songtitle="null"
+    songalbum="null"
+    songartist="null"
+    songartistalbum="null"
+    songoriginalbpm="null"
+    songbpm="null"
+    songcopyright="null"
+    songtracknumber="null"
+    songtracktotal="null"
+    songdiscnumber="null"
+    songdisctotal="null"
+    songlyricrating="null"
+    songcompilation="null"
+    songdate="null"
+    songyear="null"
+    songgenre="null"
+    songcomposer="null"
+    songisrc="null"
+
     tags="$(ffprobe -v quiet -print_format json -show_format "$file" | jq -r '.[] | .tags')"
     if [ "$extension" = "flac" ]; then
         songtitle="$(echo "$tags" | jq -r ".TITLE")"
@@ -288,7 +315,7 @@ Tag () {
         songlyricrating="$(echo "$tags" | jq -r ".ITUNESADVISORY")"
         songcompilation="$(echo "$tags" | jq -r ".compilation")"
         songdate="$(echo "$tags" | jq -r ".date")"
-        songyear="${songdate:0:4}"
+        songyear="$(echo "$tags" | jq -r ".date")"
         songgenre="$(echo "$tags" | jq -r ".genre" | cut -f1 -d";")"
         songcomposer="$(echo "$tags" | jq -r ".composer" | cut -f1 -d";")"
         songisrc="ISRC: $(echo "$tags" | jq -r ".TSRC"); Source File: MP3"
@@ -344,6 +371,10 @@ Tag () {
         songcompilation="0"
     fi
 
+    if [ "$songdate" = "null" ]; then
+        songdate=""
+    fi
+    
     if [ "$songyear" = "null" ]; then
         songyear=""
     fi
@@ -356,6 +387,7 @@ Tag () {
         songcomposer=""
     fi
 
+    
     if [ -f "$file" ]; then
         if [ ! -f "$filedest" ]; then
             if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options "$filedest" < /dev/null; then
@@ -634,45 +666,45 @@ CleanCacheCheck
 LidarrListImport
 if ls /config/list | read; then
     if ls /config/list -I "*-related" -I "*-lidarr" | read; then
-        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | wc -l)"
         listtext="$listcount Artists"
     else
         listtext="0 Artists"
     fi
 
     if ls /config/list/*-related 2> /dev/null | read; then
-        listrelatedcount="$(ls /config/list/*-related | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        listrelatedcount="$(ls /config/list | grep "related" | cut -f1 -d "-" | sort -u | wc -l)"
         relatedtext="$listrelatedcount Related Artists"
     else
         relatedtext="0 Related Artists"
     fi
 
     if ls /config/list/*-lidarr 2> /dev/null | read; then
-        listlidarrcount="$(ls /config/list/*-lidarr | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        listlidarrcount="$(ls /config/list | grep "lidarr" | cut -f1 -d "-" | sort -u | wc -l)"
         lidarrtext="$listlidarrcount Lidarr Artists"
     else
         lidarrtext="0 Lidarr Artists"
     fi
 
     if [ "$RELATED_ARTIST" = "true" ]; then
-        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | sort -u | wc -l)"
     else
         list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
         listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
     fi
 
     if [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "true" ]; then
-        list=($(ls /config/list | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        list=($(ls /config/list | cut -f1 -d "-" | sort -u))
         echo "Processing :: $listtext & $lidarrtext & $relatedtext"
     elif [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "false" ]; then
-        list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        list=($(ls /config/list -I "*-related" | cut -f1 -d "-" | sort -u))
         echo "Processing :: $listtext & $lidarrtext"
     elif [ "$LidarrListImport" = "false" ] && [ "$RELATED_ARTIST" = "true" ]; then
         echo "Processing :: $listtext & $relatedtext"
-        list=($(ls /config/list -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        list=($(ls /config/list -I "*-lidarr" | cut -f1 -d "-" | sort -u))
     else
         echo "Processing :: $listtext"
-        list=($(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        list=($(ls /config/list -I "*-related" -I "*-lidarr" | cut -f1 -d "-" | sort -u))
     fi
 
     ProcessArtistList
