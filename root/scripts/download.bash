@@ -152,6 +152,9 @@ LidarrListImport () {
         for url in ${!deezerartisturl[@]}; do
 			deezerid="${deezerartisturl[$url]}"
 			lidarrdeezerid=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
+            if [ -f "/config/list/$lidarrdeezerid" ]; then
+               rm "/config/list/$lidarrdeezerid"
+            fi
             if [ ! -f "/config/list/$lidarrdeezerid-lidarr" ]; then
                 echo -n "$mbid" > "/config/list/$lidarrdeezerid-lidarr"
             fi
@@ -682,7 +685,9 @@ configuration
 echo ""
 echo ""
 CleanCacheCheck
-LidarrListImport
+if [ "$LidarrListImport" = "true" ]
+    LidarrListImport
+fi
 if ls /config/list | read; then
     if ls /config/list -I "*-related" -I "*-lidarr" | read; then
         listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | wc -l)"
