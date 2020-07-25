@@ -251,11 +251,74 @@ ConverterTagger () {
 
 }
 
+
+FileVerification () {
+
+    if [ "$mp3switch" = "false" ]; then
+        if find "$LIBRARY" -type f -iname "*.flac" | read; then
+            flaccount="$(find "$LIBRARY" -iname "*.flac" | wc -l)"
+            echo "Verifying $flaccount FLAC Files"
+            find "$LIBRARY" -iname "*.flac" -print0 | while IFS= read -r -d '' file; do
+                filename="$(basename "$file")"
+                directory="$(basename "$(dirname "$file")")"
+                if flac -t --totally-silent "$file"; then
+                    echo "Verified :: $directory :: $filename"
+                else
+                    echo "ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
+                    rm "$file"
+                fi
+            done
+            newflaccount="$(find "$LIBRARY" -iname "*.flac" | wc -l)"
+        fi
+    else
+        flaccount="1"
+        newflaccount="1"
+    fi
+
+    if find "$LIBRARY" -type f -iname "*.mp3" | read; then
+       mp3count="$(find "$LIBRARY" -iname "*.mp3" | wc -l)"
+        echo "Verifying $mp3count MP3 Files"
+        find "$LIBRARY" -iname "*.mp3" -print0 | while IFS= read -r -d '' file; do
+            filename="$(basename "$file")"
+            directory="$(basename "$(dirname "$file")")"
+            if mp3val -f -nb "$file" > /dev/null; then
+                echo "Verified :: $directory :: $filename"
+            else
+                echo "ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
+                rm "$file"
+            fi
+        done
+        newmp3count="$(find "$LIBRARY" -iname "*.mp3" | wc -l)"
+    fi
+
+    if [ "$newflaccount" != "$flaccount" ]; then
+        fileerror="1"
+    elif [ "$newmp3count" != "$mp3count" ]; then
+        fileerror="1"
+    else
+        fileerror="0"
+    fi
+    
+    if [ "$fileerror" == "1" ]; then
+        echo "File Verification Error :: Downloading missing tracks as MP3"
+        CreateLinks
+        dlquality="320"
+        mp3switch="true"
+        AlbumDL
+        RemoveLinks
+        dlquality="FLAC"
+        FileVerification
+        fileerror="0"
+    fi
+}
+
+
 Tag () {
     file="$1"
     extension="${1##*.}"
     filedest="${file%.$extension}.$setextension"
     filename="$(basename "$filedest")"
+    directory="$(basename "$(dirname "$file")")"
     filelrc="${file%.$extension}.lrc"
     cover="$(dirname "$1")/folder.jpg"
     if [ ! -f "$file" ]; then
@@ -302,13 +365,15 @@ Tag () {
         songyear="${songdate:0:4}"
         songgenre="$(echo "$tags" | jq -r ".GENRE" | cut -f1 -d";")"
         songcomposer="$(echo "$tags" | jq -r ".composer")"
-        songisrc="ISRC: $(echo "$tags" | jq -r ".ISRC"); Source File: FLAC"
+        songcomment="Source File: FLAC"
+        songisrc="$(echo "$tags" | jq -r ".ISRC")"
         songauthor="$(echo "$tags" | jq -r ".author")"
         songartists="$(echo "$tags" | jq -r ".ARTISTS")"
         songengineer="$(echo "$tags" | jq -r ".engineer")"
         songproducer="$(echo "$tags" | jq -r ".producer")"
         songmixer="$(echo "$tags" | jq -r ".mixer")"
         songwriter="$(echo "$tags" | jq -r ".writer")"
+        songbarcode="$(echo "$tags" | jq -r ".BARCODE")"
     fi
     if [ "$extension" = "mp3" ]; then
         songtitle="$(echo "$tags" | jq -r ".title")"
@@ -329,12 +394,14 @@ Tag () {
         songyear="$(echo "$tags" | jq -r ".date")"
         songgenre="$(echo "$tags" | jq -r ".genre" | cut -f1 -d";")"
         songcomposer="$(echo "$tags" | jq -r ".composer")"
-        songisrc="ISRC: $(echo "$tags" | jq -r ".TSRC"); Source File: MP3"
+        songcomment="Source File: MP3"
+        songisrc="$(echo "$tags" | jq -r ".TSRC")"
         songauthor=""
         songartists="$(echo "$tags" | jq -r ".ARTISTS")"
         songengineer=""
         songproducer=""
         songmixer=""
+        songbarcode="$(echo "$tags" | jq -r ".BARCODE")"
     fi
 
     if [ -f "$filelrc" ]; then
@@ -440,25 +507,33 @@ Tag () {
     if [ "$songmixer" = "null" ]; then
         songmixer=""
     fi
+
+    if [ "$songbarcode" = "null" ]; then
+        songbarcode=""
+    fi
+
+    if [ "$songcomment" = "null" ]; then
+        songcomment=""
+    fi
     
     if [ -f "$file" ]; then
         if [ ! -f "$filedest" ]; then
             if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options "$filedest" < /dev/null; then
                 if [ -f "$filedest" ]; then
-                    echo "Encoding Succcess :: $FORMAT :: $filename"
+                    echo "Encoding Succcess :: $FORMAT :: $directory :: $filename"
                 fi
             else
                 echo "Error"
             fi
         fi
         if [ ! -f "$filedest" ]; then
-            echo "ERROR: EXITING :: $filename"
+            echo "ERROR: EXITING :: $directory :: $filename"
             exit 0
         fi
     fi
     if [ "$setextension" == "m4a" ]; then
         if [ -f "$filedest" ]; then
-            echo "Tagging: $filename"
+            echo "Tagging :: $directory :: $filename"
             python3 /config/scripts/tag.py \
                 --file "$filedest" \
                 --songtitle "$songtitle" \
@@ -484,14 +559,16 @@ Tag () {
                 --songproducer "$songproducer" \
                 --songmixer "$songmixer" \
                 --songpublisher "$songpublisher" \
+                --songcomment "$songcomment" \
+                --songbarcode "$songbarcode" \
                 --songartwork "$cover"
-            echo "Tagged: $filename"
+            echo "Tagged :: $directory :: $filename"
         fi
     fi
     if [ -f "$filedest" ]; then
         if [ -f "$file" ]; then
             rm "$file"
-            echo "Deleted: $file"
+            echo "Deleted :: $directory :: $filename"
         fi
     fi
 
@@ -579,6 +656,11 @@ CreateLinks () {
             mp3link="${file%.flac}.mp3"
             ln -s "$file" "$mp3link"
         done' bash {} + &> /dev/null
+    find "$LIBRARY" -iname "*.mp3" -type f -exec bash -c '
+        for file do
+            flaclink="${file%.mp3}.flac"
+            ln -s "$file" "$flaclink"
+        done' bash {} + &> /dev/null
 }
 
 RemoveLinks () {
@@ -602,6 +684,11 @@ RemoveLinks () {
         for file do
             mp3link="${file%.flac}.mp3"
             unlink "$mp3link"
+        done' bash {} + &> /dev/null
+    find "$LIBRARY" -iname "*.mp3" -type f -exec bash -c '
+        for file do
+            flaclink="${file%.mp3}.flac"
+            unlink "$flaclink"
         done' bash {} + &> /dev/null
 }
 
@@ -632,9 +719,12 @@ ProcessArtist () {
     if [ "$amacomplete" = "true" ]; then
         echo "ARCHIVING :: $DeezerArtistID :: Already archived..."
     else
+        mp3switch="false"
         CreateLinks
         AlbumDL
         RemoveLinks
+        FileVerification
+            
         if [[ "$FORMAT" == "AAC" || "$FORMAT" = "OPUS" || "$FORMAT" = "ALAC" ]]; then
             ConverterTagger
         elif [ "$FORMAT" == "MP3" ]; then
@@ -644,6 +734,7 @@ ProcessArtist () {
                 sleep 0.01
             else
                 ConverterTagger
+                sleep 60
             fi
         fi
         Permissions
@@ -786,14 +877,14 @@ if ls /config/list | read; then
 
     ProcessArtistList
     if  [ "$RELATED_ARTIST" = "true" ]; then
-            ProcessArtistRelated
-        fi
-    else
-        echo "No artists to process, add artist files to list directory"
+        ProcessArtistRelated
     fi
-    echo ""
-    echo ""
-    Permissions
+else
+    echo "No artists to process, add artist files to list directory"
+fi
+echo ""
+echo ""
+Permissions
 
 echo "STOPPING ENGINE"
 exit 0

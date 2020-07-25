@@ -25,7 +25,7 @@ parser.add_argument('--songdate', help='A required integer positional argument')
 parser.add_argument('--songyear', help='A required integer positional argument')
 parser.add_argument('--songgenre', help='A required integer positional argument')
 parser.add_argument('--songcomposer', help='A required integer positional argument')
-parser.add_argument('--songisrc', help='A required integer positional argument')
+parser.add_argument('--songisrc', type=str, help='A required integer positional argument')
 parser.add_argument('--songartwork', help='A required integer positional argument')
 parser.add_argument('--songauthor', type=str, help='A required integer positional argument')
 parser.add_argument('--songartists', type=str, help='A required integer positional argument')
@@ -33,6 +33,8 @@ parser.add_argument('--songengineer', type=str, help='A required integer positio
 parser.add_argument('--songproducer', type=str, help='A required integer positional argument')
 parser.add_argument('--songmixer', type=str, help='A required integer positional argument')
 parser.add_argument('--songpublisher', type=str, help='A required integer positional argument')
+parser.add_argument('--songcomment', type=str, help='A required integer positional argument')
+parser.add_argument('--songbarcode', type=str, help='A required integer positional argument')
 args = parser.parse_args()
 
 filename = args.file
@@ -52,7 +54,7 @@ date = args.songdate
 year = args.songyear
 genre = args.songgenre
 composer = args.songcomposer
-iscr = args.songisrc
+isrc = args.songisrc
 picture = args.songartwork
 lyricist = args.songauthor
 artists = args.songartists
@@ -62,7 +64,8 @@ engineer = args.songengineer
 producer = args.songproducer
 mixer = args.songmixer
 label = args.songpublisher
-
+barcode = args.songbarcode
+comment = args.songcomment
 
 audio = MP4(filename)
 audio["\xa9nam"] = [title]
@@ -89,13 +92,17 @@ if mixer:
     audio["----:com.apple.iTunes:MIXER"] = mixer.encode()
 if label:
     audio["----:com.apple.iTunes:LABEL"] = label.encode()
+if barcode:
+    audio["----:com.apple.iTunes:BARCODE"] = barcode.encode()
+if isrc:
+    audio["----:com.apple.iTunes:ISRC"] = isrc.encode()
 if ( compilation == 1 ):
    audio["cpil"] = [compilation]
 audio["stik"] = [1]
-audio["\xa9cmt"] = [iscr]
+audio["\xa9cmt"] = [comment]
 with open(picture, "rb") as f:
     audio["covr"] = [
-        MP4Cover(f.read(), imageformat=MP4Cover.FORMAT_JPEG)
+        MP4Cover(f.read(), MP4Cover.FORMAT_JPEG)
     ]
 #audio["\xa9lyr"] = [syncedlyrics]
 audio.pprint()
