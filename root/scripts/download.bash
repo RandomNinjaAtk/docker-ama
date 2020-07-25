@@ -54,7 +54,7 @@ configuration () {
     else
         echo "Related Artist Related (loop): DISABLED"
     fi
-    
+
     if [ ! -z "$FORMAT" ]; then
         echo "Download Format: $FORMAT"
         if [ "$FORMAT" = "ALAC" ]; then
@@ -301,7 +301,7 @@ Tag () {
         songdate="$(echo "$tags" | jq -r ".DATE")"
         songyear="${songdate:0:4}"
         songgenre="$(echo "$tags" | jq -r ".GENRE" | cut -f1 -d";")"
-        songcomposer="$(echo "$tags" | jq -r ".composer" | cut -f1 -d";")"
+        songcomposer="$(echo "$tags" | jq -r ".composer")"
         songisrc="ISRC: $(echo "$tags" | jq -r ".ISRC"); Source File: FLAC"
         songauthor="$(echo "$tags" | jq -r ".author")"
         songartists="$(echo "$tags" | jq -r ".ARTISTS")"
@@ -328,7 +328,7 @@ Tag () {
         songdate="$(echo "$tags" | jq -r ".date")"
         songyear="$(echo "$tags" | jq -r ".date")"
         songgenre="$(echo "$tags" | jq -r ".genre" | cut -f1 -d";")"
-        songcomposer="$(echo "$tags" | jq -r ".composer" | cut -f1 -d";")"
+        songcomposer="$(echo "$tags" | jq -r ".composer")"
         songisrc="ISRC: $(echo "$tags" | jq -r ".TSRC"); Source File: MP3"
         songauthor=""
         songartists="$(echo "$tags" | jq -r ".ARTISTS")"
@@ -409,6 +409,12 @@ Tag () {
 
     if [ "$songcomposer" = "null" ]; then
         songcomposer=""
+    else
+        if [ "$extension" = "mp3" ]; then
+            songcomposer=${songcomposer//;/, } 
+        else
+            songcomposer=${songcomposert//\//, }
+        fi
     fi
 
     if [ "$songwriter" = "null" ]; then
