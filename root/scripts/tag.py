@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
+import sys
+import enum
 import argparse
 from mutagen.mp4 import MP4, MP4Cover
 
@@ -24,6 +27,12 @@ parser.add_argument('--songgenre', help='A required integer positional argument'
 parser.add_argument('--songcomposer', help='A required integer positional argument')
 parser.add_argument('--songisrc', help='A required integer positional argument')
 parser.add_argument('--songartwork', help='A required integer positional argument')
+parser.add_argument('--songauthor', type=str, help='A required integer positional argument')
+parser.add_argument('--songartists', type=str, help='A required integer positional argument')
+parser.add_argument('--songengineer', type=str, help='A required integer positional argument')
+parser.add_argument('--songproducer', type=str, help='A required integer positional argument')
+parser.add_argument('--songmixer', type=str, help='A required integer positional argument')
+parser.add_argument('--songpublisher', type=str, help='A required integer positional argument')
 args = parser.parse_args()
 
 filename = args.file
@@ -45,8 +54,15 @@ genre = args.songgenre
 composer = args.songcomposer
 iscr = args.songisrc
 picture = args.songartwork
+lyricist = args.songauthor
+artists = args.songartists
 tracknumber = (trackn, trackt)
 discnumber = (discn, disct)
+engineer = args.songengineer
+producer = args.songproducer
+mixer = args.songmixer
+label = args.songpublisher
+
 
 audio = MP4(filename)
 audio["\xa9nam"] = [title]
@@ -61,6 +77,18 @@ audio["tmpo"] = [bpm]
 audio["trkn"] = [tracknumber]
 audio["disk"] = [discnumber]
 audio["cprt"] = [copyrightext]
+if lyricist:
+    audio["----:com.apple.iTunes:LYRICIST"] = lyricist.encode()
+if artists:
+    audio["----:com.apple.iTunes:ARTISTS"] = artists.encode()
+if engineer:
+    audio["----:com.apple.iTunes:ENGINEER"] = engineer.encode()
+if producer:
+    audio["----:com.apple.iTunes:PRODUCER"] = producer.encode()
+if mixer:
+    audio["----:com.apple.iTunes:MIXER"] = mixer.encode()
+if label:
+    audio["----:com.apple.iTunes:LABEL"] = label.encode()
 if ( compilation == 1 ):
    audio["cpil"] = [compilation]
 audio["stik"] = [1]

@@ -54,7 +54,7 @@ configuration () {
     else
         echo "Related Artist Related (loop): DISABLED"
     fi
-
+    
     if [ ! -z "$FORMAT" ]; then
         echo "Download Format: $FORMAT"
         if [ "$FORMAT" = "ALAC" ]; then
@@ -290,7 +290,8 @@ Tag () {
         songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
         songoriginalbpm="$(echo "$tags" | jq -r ".BPM")"
         songbpm=${songoriginalbpm%.*}
-        songcopyright="$(echo "$tags" | jq -r ".PUBLISHER")"
+        songcopyright="$(echo "$tags" | jq -r ".COPYRIGHT")"
+        songpublisher="$(echo "$tags" | jq -r ".PUBLISHER")"
         songtracknumber="$(echo "$tags" | jq -r ".track")"
         songtracktotal="$(echo "$tags" | jq -r ".TRACKTOTAL")"
         songdiscnumber="$(echo "$tags" | jq -r ".disc")"
@@ -302,6 +303,12 @@ Tag () {
         songgenre="$(echo "$tags" | jq -r ".GENRE" | cut -f1 -d";")"
         songcomposer="$(echo "$tags" | jq -r ".composer" | cut -f1 -d";")"
         songisrc="ISRC: $(echo "$tags" | jq -r ".ISRC"); Source File: FLAC"
+        songauthor="$(echo "$tags" | jq -r ".author")"
+        songartists="$(echo "$tags" | jq -r ".ARTISTS")"
+        songengineer="$(echo "$tags" | jq -r ".engineer")"
+        songproducer="$(echo "$tags" | jq -r ".producer")"
+        songmixer="$(echo "$tags" | jq -r ".mixer")"
+        songwriter="$(echo "$tags" | jq -r ".writer")"
     fi
     if [ "$extension" = "mp3" ]; then
         songtitle="$(echo "$tags" | jq -r ".title")"
@@ -310,7 +317,8 @@ Tag () {
         songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
         songoriginalbpm="$(echo "$tags" | jq -r ".TBPM")"
         songbpm=${songoriginalbpm%.*}
-        songcopyright="$(echo "$tags" | jq -r ".publisher")"
+        songcopyright="$(echo "$tags" | jq -r ".copyright")"
+        songpublisher="$(echo "$tags" | jq -r ".publisher")"
         songtracknumber="$(echo "$tags" | jq -r ".track" | cut -f1 -d "/")"
         songtracktotal="$(echo "$tags" | jq -r ".track" | cut -f2 -d "/")"
         songdiscnumber="$(echo "$tags" | jq -r ".disc" | cut -f1 -d "/")"
@@ -322,6 +330,11 @@ Tag () {
         songgenre="$(echo "$tags" | jq -r ".genre" | cut -f1 -d";")"
         songcomposer="$(echo "$tags" | jq -r ".composer" | cut -f1 -d";")"
         songisrc="ISRC: $(echo "$tags" | jq -r ".TSRC"); Source File: MP3"
+        songauthor=""
+        songartists="$(echo "$tags" | jq -r ".ARTISTS")"
+        songengineer=""
+        songproducer=""
+        songmixer=""
     fi
 
     if [ -f "$filelrc" ]; then
@@ -332,6 +345,10 @@ Tag () {
 
     if [ "$songtitle" = "null" ]; then
         songtitle=""
+    fi
+
+    if [ "$songpublisher" = "null" ]; then
+        songpublisher=""
     fi
 
     if [ "$songalbum" = "null" ]; then
@@ -393,6 +410,30 @@ Tag () {
     if [ "$songcomposer" = "null" ]; then
         songcomposer=""
     fi
+
+    if [ "$songwriter" = "null" ]; then
+        songwriter=""
+    fi
+
+    if [ "$songauthor" = "null" ]; then
+        songauthor="$songwriter"
+    fi
+
+    if [ "$songartists" = "null" ]; then
+        songartists=""
+    fi
+
+    if [ "$songengineer" = "null" ]; then
+        songengineer=""
+    fi
+
+    if [ "$songproducer" = "null" ]; then
+        songproducer=""
+    fi
+
+    if [ "$songmixer" = "null" ]; then
+        songmixer=""
+    fi
     
     if [ -f "$file" ]; then
         if [ ! -f "$filedest" ]; then
@@ -431,6 +472,12 @@ Tag () {
                 --songgenre "$songgenre" \
                 --songcomposer "$songcomposer" \
                 --songisrc "$songisrc" \
+                --songauthor "$songauthor" \
+                --songartists "$songartists" \
+                --songengineer "$songengineer" \
+                --songproducer "$songproducer" \
+                --songmixer "$songmixer" \
+                --songpublisher "$songpublisher" \
                 --songartwork "$cover"
             echo "Tagged: $filename"
         fi
