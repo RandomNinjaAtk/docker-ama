@@ -254,6 +254,7 @@ ConverterTagger () {
 
 FileVerification () {
 
+    verificationerror="0"
     if find "$LIBRARY" -type f -iname "errors.txt" | read; then
         OLDIFS="$IFS"
         IFS=$'\n'
@@ -261,54 +262,49 @@ FileVerification () {
         for id in ${!list[@]}; do
             processid=$(( $id + 1 ))
             file="${list[$id]}"
-            folder="$(dirname "$file")"
-            if find "$folder" -type f -iname "*.flac" | read; then
-                for fname in "${folder}"/*.flac; do
-                    filename="$(basename "$fname")"
-                    directory="$(basename "$(dirname "$fname")")"
-                    if flac -t --totally-silent "$fname"; then
-                        echo "Verified :: $directory :: $filename"
-                    else
-                        echo "ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
-                        rm "$fname"
-                    fi
-                done
-            fi
-            if find "$folder" -type f -iname "*.mp3" | read; then
-                for fname in "${folder}"/*.mp3; do
-                    filename="$(basename "$fname")"
-                    directory="$(basename "$(dirname "$fname")")"
-                    if mp3val -f -nb "$fname" > /dev/null; then
-                        echo "Verified :: $directory :: $filename"
-                    else
-                        echo "ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
-                        rm "$fname"
-                    fi
-                done
+            if cat "$file" | grep -i "is not a valid FLAC file" | read; then
+                folder="$(dirname "$file")"
+                if find "$folder" -type f -iname "*.flac" | read; then
+                    for fname in "${folder}"/*.flac; do
+                        filename="$(basename "$fname")"
+                        directory="$(basename "$(dirname "$fname")")"
+                        if flac -t --totally-silent "$fname"; then
+                            echo "Verified :: $directory :: $filename"
+                        else
+                            echo "ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
+                            rm "$fname"
+                        fi
+                    done
+                fi
+                if find "$folder" -type f -iname "*.mp3" | read; then
+                    for fname in "${folder}"/*.mp3; do
+                        filename="$(basename "$fname")"
+                        directory="$(basename "$(dirname "$fname")")"
+                        if mp3val -f -nb "$fname" > /dev/null; then
+                            echo "Verified :: $directory :: $filename"
+                        else
+                            echo "ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
+                            rm "$fname"
+                        fi
+                    done
+                fi
+                rm "$file"
+                verificationerror="1"
             fi
         done
         IFS="$OLDIFS"
-        find "$LIBRARY" -type f -iname "errors.txt" -delete
-        verificationerror="1"
-    else
-        verificationerror="0"
     fi
 
-    if [ "$verificationerror" == "1" ]; then
-        echo "File Verification Error :: Downloading missing tracks as MP3"
-        CreateLinks
-        if [ -z "$origdlquality" ]; then
-            origdlquality="$dlquality"
-        fi
-        if [ "$dlquality" == "FLAC" ]; then
+    if [ "$dlquality" == "FLAC" ]; then
+        if [ "$verificationerror" == "1" ]; then
+            echo "File Verification Error :: Downloading missing tracks as MP3"
+            CreateLinks
             dlquality="320"
-        elif [ "$dlquality" == "320" ]; then
-            dlquality="128"
+            AlbumDL
+            RemoveLinks
+            dlquality="FLAC"
+            FileVerification
         fi
-        AlbumDL
-        RemoveLinks
-        dlquality="$origdlquality"
-        FileVerification
     fi
 }
 
@@ -778,11 +774,6 @@ ProcessArtistRelated () {
 
 CleanCacheCheck () {
 	if [ -d "/config/cache" ]; then
-    
-        if find "$LIBRARY" -type f -iname "errors.txt" | read; then
-            echo "Errors found, clearing cache..."
-            rm /config/cache/*
-        fi
 
 		if [ -f "/config/cache/cleanup-cache-check" ]; then
 			rm "/config/cache/cleanup-cache-check"
