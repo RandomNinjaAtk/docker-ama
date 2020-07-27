@@ -707,6 +707,50 @@ Permissions () {
 
 }
 
+CleanArtistsWithoutImage () {
+    if find "$LIBRARY"  -maxdepth 2 -type f -iname "folder.jpg" | read; then
+        artistlist=($(ls /config/list | cut -f1 -d "-" | sort -u))
+        OLDIFS="$IFS"
+        IFS=$'\n'
+        list=($(find "$LIBRARY" -maxdepth 2 -type f -iname "folder.jpg" | sort -u))
+        for id in ${!list[@]}; do
+            processid=$(( $id + 1 ))
+            file="${list[$id]}"
+            folder="$(dirname "$file")"
+            found="0"
+            notfound="0"
+            blankartistmd5="15726542fbe903788d2890ef560a9804"
+            md5="$(md5sum "$file")"
+            md5clean="$(echo "$md5" | cut -f1 -d " ")"
+            if [ "$md5clean" == "$blankartistmd5" ]; then
+                for id in ${!artistlist[@]}; do
+                    processid=$(( $id + 1 ))
+                    artistid="${artistlist[$id]}"
+                    #echo "$artistid"
+                    if echo "$folder" | grep -i "($artistid)" | read; then
+                        found="1"
+                        break
+                    else
+                        continue
+                    fi
+                done
+                if [ "$found" = "0" ]; then
+                    notfound="1"
+                elif [ "$found" = "1" ]; then
+                    notfound="0"
+                fi
+            fi
+            if [ "$notfound" = "1" ]; then
+                echo "Blank Artist Image Found :: $folder :: ArtistID not found in list (/config/list), deleting..."
+                rm -rf "$folder"
+            else
+                continue
+            fi
+        done
+        IFS="$OLDIFS"
+    fi
+}
+
 ProcessArtist () {
     DeezerArtistID="$artistid"
     dlurl="https://www.deezer.com/en/artist/${DeezerArtistID}"
@@ -715,11 +759,15 @@ ProcessArtist () {
     if [ "$amacomplete" = "true" ]; then
         echo "ARCHIVING :: $DeezerArtistID :: Already archived..."
     else
-        mp3switch="false"
+        
         CreateLinks
         AlbumDL
         RemoveLinks
         FileVerification
+
+        if [ "$RemoveArtistWithoutImage" = "true" ]; then
+            CleanArtistsWithoutImage
+        fi
             
         if [[ "$FORMAT" == "AAC" || "$FORMAT" = "OPUS" || "$FORMAT" = "ALAC" ]]; then
             ConverterTagger
