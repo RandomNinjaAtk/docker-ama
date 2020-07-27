@@ -759,6 +759,10 @@ ProcessArtist () {
     if [ "$amacomplete" = "true" ]; then
         echo "ARCHIVING :: $DeezerArtistID :: Already archived..."
     else
+        if [ -f "/config/scripts/temp" ]; then
+            echo "Cleanup unfinished downloads from stopping early..."
+            find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp" -exec rm -rf {} \;
+        fi
         touch "/config/scripts/temp"
         CreateLinks
         AlbumDL
