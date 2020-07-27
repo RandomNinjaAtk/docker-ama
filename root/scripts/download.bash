@@ -759,22 +759,17 @@ ProcessArtist () {
     if [ "$amacomplete" = "true" ]; then
         echo "ARCHIVING :: $DeezerArtistID :: Already archived..."
     else
-        if [ -f "/config/scripts/temp" ]; then
-            echo "Cleanup unfinished downloads from stopping early..."
-            find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp" -exec rm -rf {} \;
-        fi
-        touch "/config/scripts/temp"
         CreateLinks
+        touch "/config/scripts/temp"
         AlbumDL
+        if [ "$RemoveDuplicates" = "true" ]; then
+            RemoveDuplicatesFunction
+        fi
         RemoveLinks
         FileVerification
 
         if [ "$RemoveArtistWithoutImage" = "true" ]; then
             CleanArtistsWithoutImage
-        fi
-
-        if [ "$RemoveDuplicates" = "true" ]; then
-            RemoveDuplicatesFunction
         fi
             
         if [[ "$FORMAT" == "AAC" || "$FORMAT" = "OPUS" || "$FORMAT" = "ALAC" ]]; then
