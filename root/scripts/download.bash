@@ -866,11 +866,9 @@ CleanCacheCheck () {
 }
 
 RemoveDuplicatesFunction () {
-    IFS="$OLDIFS"
-    OLDIFS="$IFS"
-    IFS=$'\n'
-    explicitlist=""
     if find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp" | read; then
+    	OLDIFS="$IFS"
+    	IFS=$'\n'
         explicitfolderlist=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -iname "* (Explicit)" -newer "/config/scripts/temp"))
         cleanfolderlist=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -not -iname "* (Explicit)" -not -iname "* (Deluxe*" -newer "/config/scripts/temp"))
         IFS="$OLDIFS"
