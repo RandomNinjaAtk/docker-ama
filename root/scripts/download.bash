@@ -258,7 +258,7 @@ FileVerification () {
     if find "$LIBRARY" -type f -iname "errors.txt" | read; then
         OLDIFS="$IFS"
         IFS=$'\n'
-        list=($(find "$LIBRARY" -iname "errors.txt"))
+        listerror=($(find "$LIBRARY" -iname "errors.txt"))
         for id in ${!list[@]}; do
             processid=$(( $id + 1 ))
             file="${list[$id]}"
@@ -712,10 +712,10 @@ CleanArtistsWithoutImage () {
         artistlist=($(ls /config/list | cut -f1 -d "-" | sort -u))
         OLDIFS="$IFS"
         IFS=$'\n'
-        list=($(find "$LIBRARY" -maxdepth 2 -type f -iname "folder.jpg" | sort -u))
-        for id in ${!list[@]}; do
+        cleanartistlist=($(find "$LIBRARY" -maxdepth 2 -type f -iname "folder.jpg" | sort -u))
+        for id in ${!cleanartistlist[@]}; do
             processid=$(( $id + 1 ))
-            file="${list[$id]}"
+            file="${cleanartistlist[$id]}"
             folder="$(dirname "$file")"
             found="0"
             notfound="0"
@@ -798,13 +798,13 @@ ProcessArtist () {
 
 ProcessArtistRelated () {
     if  [ "$RELATED_ARTIST_RELATED" = "true" ]; then
-        list=($(ls /config/list | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        relatedprocesslist=($(ls /config/list | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
     else
-        list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
+        relatedprocesslist=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
     fi
-    for id in ${!list[@]}; do
+    for id in ${!relatedprocesslist[@]}; do
         artistnumber=$(( $id + 1 ))
-        artistid="${list[$id]}"
+        artistid="${relatedprocesslist[$id]}"
         DeezerArtistID="$artistid"
         if [ -f "/config/cache/${DeezerArtistID}-related.json" ]; then
             artistrelatedfile="$(cat "/config/cache/${DeezerArtistID}-related.json")"
