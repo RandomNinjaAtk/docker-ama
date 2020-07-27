@@ -760,7 +760,8 @@ ProcessArtist () {
         echo "ARCHIVING :: $DeezerArtistID :: Already archived..."
     else
         CreateLinks
-        touch "/config/scripts/temp"
+	sleep 2
+        touch "/conig/scripts/temp"
         AlbumDL
         if [ "$RemoveDuplicates" = "true" ]; then
             RemoveDuplicatesFunction
