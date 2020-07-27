@@ -761,7 +761,7 @@ ProcessArtist () {
     else
         CreateLinks
 	sleep 2
-        touch "/conig/scripts/temp"
+        touch "/config/scripts/temp"
         AlbumDL
         if [ "$RemoveDuplicates" = "true" ]; then
             RemoveDuplicatesFunction
