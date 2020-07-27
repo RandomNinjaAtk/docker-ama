@@ -759,7 +759,7 @@ ProcessArtist () {
     if [ "$amacomplete" = "true" ]; then
         echo "ARCHIVING :: $DeezerArtistID :: Already archived..."
     else
-        
+        touch "/config/scripts/temp"
         CreateLinks
         AlbumDL
         RemoveLinks
@@ -767,6 +767,10 @@ ProcessArtist () {
 
         if [ "$RemoveArtistWithoutImage" = "true" ]; then
             CleanArtistsWithoutImage
+        fi
+
+        if [ "$RemoveDuplicates" = "true" ]; then
+            RemoveDuplicatesFunction
         fi
             
         if [[ "$FORMAT" == "AAC" || "$FORMAT" = "OPUS" || "$FORMAT" = "ALAC" ]]; then
@@ -788,7 +792,7 @@ ProcessArtist () {
             jq ". + {\"ama\": \"true\"}" "/config/cache/${DeezerArtistID}-temp-info.json" > "/config/cache/${DeezerArtistID}-info.json"
             rm "/config/cache/${DeezerArtistID}-temp-info.json"
         fi
-
+        rm "/config/scripts/temp"
     fi
 }
 
@@ -861,6 +865,53 @@ CleanCacheCheck () {
 	fi
 }
 
+RemoveDuplicatesFunction () {
+    IFS="$OLDIFS"
+    OLDIFS="$IFS"
+    IFS=$'\n'
+    explicitlist=""
+    if find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp" | read; then
+        explicitfolderlist=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -iname "* (Explicit)" -newer "/config/scripts/temp"))
+        cleanfolderlist=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -not -iname "* (Explicit)" -not -iname "* (Deluxe*" -newer "/config/scripts/temp"))
+        IFS="$OLDIFS"
+        echo "Removing Duplicate Clean Albums"
+        for id in ${!explicitfolderlist[@]}; do
+            processid=$(( $id + 1 ))
+            folder="${explicitfolderlist[$id]}"
+            foldername="$(basename "$folder")"
+            folderpath="$(dirname "$folder")"
+            foldernameclean="$(echo "${foldername}" | sed 's/\ -\ /;/;s/\ -\ /;/;s/\ -\ /;/;s/\ -\ /;/')"
+            OLDIFS="$IFS"
+            IFS=';' read -r -a foldersplit <<< "$foldernameclean"
+            IFS="$OLDIFS"
+            Artist="$(echo "${foldersplit[0]}" | sed 's/ *$//g' | sed 's/^ *//g')"
+            Type="$(echo "${foldersplit[1]}" | sed 's/ *$//g' | sed 's/^ *//g')"
+            Year="$(echo "${foldersplit[2]}" | sed 's/ *$//g' | sed 's/^ *//g')"
+            Album="$(echo "${foldersplit[4]}" | sed 's/ *$//g' | sed 's/^ *//g' | sed 's/ (Explicit)//g')"
+            find "$LIBRARY" -type d -iname "${Artist} - ${Type} - * - * - ${Album}" -not -iname "* (Explicit)" -exec rm -rf {} \;
+            
+        done
+
+        echo "Removing Duplicate non-deluxe Clean Albums"
+        for id in ${!cleanfolderlist[@]}; do
+            processid=$(( $id + 1 ))
+            folder="${cleanfolderlist[$id]}"
+            foldername="$(basename "$folder")"
+            folderpath="$(dirname "$folder")"
+            foldernameclean="$(echo "${foldername}" | sed 's/\ -\ /;/;s/\ -\ /;/;s/\ -\ /;/;s/\ -\ /;/')"
+            OLDIFS="$IFS"
+            IFS=';' read -r -a foldersplit <<< "$foldernameclean"
+            IFS="$OLDIFS"
+            Artist="$(echo "${foldersplit[0]}" | sed 's/ *$//g' | sed 's/^ *//g')"
+            Type="$(echo "${foldersplit[1]}" | sed 's/ *$//g' | sed 's/^ *//g')"
+            Year="$(echo "${foldersplit[2]}" | sed 's/ *$//g' | sed 's/^ *//g')"
+            Album="$(echo "${foldersplit[4]}" | sed 's/ *$//g' | sed 's/^ *//g')"
+            if find "$LIBRARY" -type d -iname "${Artist} - Album - * - * - ${Album} (Deluxe*" -not -iname "* (Explicit)" | read; then
+                rm -rf "$folder"
+            fi    
+        done
+    fi
+}
 
 echo "STARTING ENGINE"
 processstartid="$(pgrep -f /config/scripts/start.bash)"
