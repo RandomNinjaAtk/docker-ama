@@ -259,9 +259,9 @@ FileVerification () {
         OLDIFS="$IFS"
         IFS=$'\n'
         listerror=($(find "$LIBRARY" -iname "errors.txt"))
-        for id in ${!list[@]}; do
+        for id in ${!listerror[@]}; do
             processid=$(( $id + 1 ))
-            file="${list[$id]}"
+            file="${listerror[$id]}"
             if cat "$file" | grep -i "is not a valid FLAC file" | read; then
                 folder="$(dirname "$file")"
                 if find "$folder" -type f -iname "*.flac" | read; then
