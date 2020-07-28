@@ -709,7 +709,7 @@ Permissions () {
 
 CleanArtistsWithoutImage () {
     if find "$LIBRARY"  -maxdepth 2 -type f -iname "folder.jpg" | read; then
-        artistlist=($(ls /config/list | cut -f1 -d "-" | sort -u))
+        artistlist=($(ls /config/list -I "*-related" | cut -f1 -d "-" | sort -u))
         OLDIFS="$IFS"
         IFS=$'\n'
         cleanartistlist=($(find "$LIBRARY" -maxdepth 2 -type f -iname "folder.jpg" | sort -u))
