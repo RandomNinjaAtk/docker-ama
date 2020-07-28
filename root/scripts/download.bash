@@ -155,6 +155,12 @@ LidarrListImport () {
             if [ -f "/config/list/$lidarrdeezerid" ]; then
                rm "/config/list/$lidarrdeezerid"
             fi
+	    if [ -f "/config/list/$lidarrdeezerid-related" ]; then
+               rm "/config/list/$lidarrdeezerid-related"
+            fi
+            if [ -f "/config/list/$lidarrdeezerid-complete" ]; then
+               rm "/config/list/$lidarrdeezerid-complete"
+            fi
             if [ ! -f "/config/list/$lidarrdeezerid-lidarr" ]; then
                 echo -n "$mbid" > "/config/list/$lidarrdeezerid-lidarr"
             fi
