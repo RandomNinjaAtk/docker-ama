@@ -764,6 +764,8 @@ ProcessArtist () {
     amacomplete="$(cat "/config/cache/${DeezerArtistID}-info.json" | jq -r ".ama")"
     if [ "$amacomplete" = "true" ]; then
         echo "ARCHIVING :: $DeezerArtistID :: Already archived..."
+    elif find /config/ignore -type f -iname "${DeezerArtistID}" | read; then
+        echo "Skipping :: $DeezerArtistID :: Ignore Artist ID Found... "
     else
         CreateLinks
 	sleep 2
