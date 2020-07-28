@@ -78,6 +78,7 @@ RUN \
 	sed -i "s/\"savePlaylistAsCompilation\": false/\"savePlaylistAsCompilation\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"removeDuplicateArtists\": false/\"removeDuplicateArtists\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"featuredToTitle\": \"0\"/\"featuredToTitle\": \"3\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
+	sed -i "s/\"saveID3v1\": true/\"saveID3v1\": false/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"multiArtistSeparator\": \"default\"/\"multiArtistSeparator\": \"andFeat\"/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	sed -i "s/\"singleAlbumArtist\": false/\"singleAlbumArtist\": true/g" "/root/scripts/deemix/deemix/app/default.json" && \
 	cp "/root/scripts/deemix/deemix/app/default.json" "/xdg/deemix/config.json" && \
