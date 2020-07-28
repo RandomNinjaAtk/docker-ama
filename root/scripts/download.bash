@@ -911,6 +911,21 @@ RemoveDuplicatesFunction () {
     fi
 }
 
+AddMissingArtists () {
+    completeartistlist=($(find $LIBRARY -maxdepth 1 -mindepth 1 | grep -o '(*[[:digit:]]*)' | sed 's/(//g;s/)//g' | sort -u))
+    for id in ${!completeartistlist[@]}; do
+        completeprocessid=$(( $id + 1 ))
+        completeartistid="${completeartistlist[$id]}"
+        if ls /config/list | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | grep -i "$completeartistid" | read; then
+            continue
+        fi
+        if [ ! -f "/config/list/$completeartistid-complete" ]; then
+            echo "Adding missing artistid $completeartistid"
+            touch "/config/list/$completeartistid-complete"
+        fi
+    done
+}
+
 echo "STARTING ENGINE"
 processstartid="$(pgrep -f /config/scripts/start.bash)"
 processdownloadid="$(pgrep -f /config/scripts/download.bash)"
@@ -926,9 +941,15 @@ CleanCacheCheck
 if [ "$LidarrListImport" = "true" ]; then
     LidarrListImport
 fi
+if [ "$CompleteMyArtists" = "true" ]; then
+    AddMissingArtists
+fi
+if  [ "$RELATED_ARTIST" = "true" ]; then
+    ProcessArtistRelated
+fi
 if ls /config/list | read; then
-    if ls /config/list -I "*-related" -I "*-lidarr" | read; then
-        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | wc -l)"
+    if ls /config/list -I "*-related" -I "*-lidarr" -I "*-complete" | read; then
+        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" -I "*-complete" | wc -l)"
         listtext="$listcount Artists"
     else
         listtext="0 Artists"
@@ -937,6 +958,11 @@ if ls /config/list | read; then
     if ls /config/list/*-related 2> /dev/null | read; then
         listrelatedcount="$(ls /config/list | grep "related" | cut -f1 -d "-" | sort -u | wc -l)"
         relatedtext="$listrelatedcount Related Artists"
+        if [ "$RELATED_ARTIST" = "true" ]; then
+            relatedoption=""
+        else
+            relatedoption=" -not -iname *-related"
+        fi
     else
         relatedtext="0 Related Artists"
     fi
@@ -944,35 +970,41 @@ if ls /config/list | read; then
     if ls /config/list/*-lidarr 2> /dev/null | read; then
         listlidarrcount="$(ls /config/list | grep "lidarr" | cut -f1 -d "-" | sort -u | wc -l)"
         lidarrtext="$listlidarrcount Lidarr Artists"
+        if [ "$LidarrListImport" = "true" ]; then
+            lidarroption=""
+        else
+            lidarroption=" -not -iname *-lidarr"
+        fi
     else
         lidarrtext="0 Lidarr Artists"
     fi
 
+    if ls /config/list/*-complete 2> /dev/null | read; then
+        listcompletecount="$(ls /config/list | grep "complete" | cut -f1 -d "-" | sort -u | wc -l)"
+        completetext="$listcompletecount Complete Artists"
+        if [ "$CompleteMyArtists" = "true" ]; then
+            completeoption=""
+        else
+            completeoption=" -not -iname *-complete"
+        fi
+    else
+        completetext="0 Complete Artists"
+    fi
+
+    listcount="$(find /config/list -mindepth 1${lidarroption}${relatedoption}${completeoption} | sed 's%/config/list/%%g' | cut -f1 -d "-" | sort -u | wc -l)"
+    list=($(find /config/list -mindepth 1${lidarroption}${relatedoption}${completeoption} | sed 's%/config/list/%%g' | cut -f1 -d "-" | sort -u))
+    echo "Processing :: $listcount Artists"
+    echo "$listtext"
     if [ "$RELATED_ARTIST" = "true" ]; then
-        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | sort -u | wc -l)"
-    else
-        list=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
-        listcount="$(ls /config/list -I "*-related" -I "*-lidarr" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | wc -l)"
+        echo "$relatedtext"
     fi
-
-    if [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "true" ]; then
-        list=($(ls /config/list | cut -f1 -d "-" | sort -u))
-        echo "Processing :: $listtext & $lidarrtext & $relatedtext"
-    elif [ "$LidarrListImport" = "true" ] && [ "$RELATED_ARTIST" = "false" ]; then
-        list=($(ls /config/list -I "*-related" | cut -f1 -d "-" | sort -u))
-        echo "Processing :: $listtext & $lidarrtext"
-    elif [ "$LidarrListImport" = "false" ] && [ "$RELATED_ARTIST" = "true" ]; then
-        echo "Processing :: $listtext & $relatedtext"
-        list=($(ls /config/list -I "*-lidarr" | cut -f1 -d "-" | sort -u))
-    else
-        echo "Processing :: $listtext"
-        list=($(ls /config/list -I "*-related" -I "*-lidarr" | cut -f1 -d "-" | sort -u))
+    if [ "$LidarrListImport" = "true" ]; then
+        echo "$lidarrtext"
     fi
-
+    if [ "$CompleteMyArtists" = "true" ]; then
+        echo "$completetext"
+    fi
     ProcessArtistList
-    if  [ "$RELATED_ARTIST" = "true" ]; then
-        ProcessArtistRelated
-    fi
 else
     echo "No artists to process, add artist files to list directory"
 fi
