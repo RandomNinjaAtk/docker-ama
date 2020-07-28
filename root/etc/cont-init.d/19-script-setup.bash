@@ -27,6 +27,11 @@ if [ ! -d "/config/list" ]; then
 	mkdir -p "/config/list"
 fi
 
+# create list directory if missing
+if [ ! -d "/config/ignore" ]; then
+	mkdir -p "/config/ignore"
+fi
+
 # set permissions
 chown -R abc:abc "/config"
 chown -R abc:abc "/scripts"
