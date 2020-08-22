@@ -156,7 +156,7 @@ configuration () {
 AddReplaygainTags () {
 	if [ "$replaygain" == "true" ]; then
 		echo "Adding Replaygain Tags using r128gain to: $LIBRARY"
-		r128gain -r -a "$LIBRARY"
+		r128gain -r -a -s -c $NumberConcurrentProcess "$LIBRARY"
 	fi
 }
 
