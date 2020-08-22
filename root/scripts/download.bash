@@ -13,12 +13,11 @@ configuration () {
         echo "Automatic Start: DISABLED"
     fi
     
-    if [ -d "$LIBRARY" ]; then
+    if [ -d "/downloads-ama" ]; then
+    		LIBRARY="/downloads-ama"
 		echo "LIBRARY Location: $LIBRARY"
-        sed -i "s%/downloadfolder%$LIBRARY%g" "/xdg/deemix/config.json"
 	else
-		echo "ERROR: LIBRARY setting invalid, currently set to: $LIBRARY"
-		echo "ERROR: LIBRARY Expected Valid Setting: /your/path/to/final/music/destination"
+		echo "ERROR: Missing /downloads-ama docker volume"
 		error=1
 	fi
 
@@ -170,9 +169,8 @@ LidarrListImport () {
 
 
 AlbumDL () {
-    chmod 0777 -R "${PathToDLClient}"
-	currentpwd="$(pwd)"
-    if cd "${PathToDLClient}" && python3 -m deemix -b ${dlquality} "$dlurl" && cd "${currentpwd}"; then
+    
+    if python3 /config/scripts/dlclient.py -b $dlquality "$dlurl"; then
         echo "Downloads Complete"
     else
         echo "ERROR: DL CLient failed"
