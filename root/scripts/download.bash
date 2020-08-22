@@ -728,7 +728,6 @@ ProcessArtist () {
 	sleep 2
         touch "/config/scripts/temp"
         AlbumDL
-	AddReplaygainTags
         if [ "$RemoveDuplicates" = "true" ]; then
             RemoveDuplicatesFunction
         fi
@@ -751,6 +750,7 @@ ProcessArtist () {
                 sleep 60
             fi
         fi
+	AddReplaygainTags
         Permissions
         if [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
             echo "ARTIST CACHE :: Updating with successful archive information..."
