@@ -304,10 +304,8 @@ FileVerification () {
     if [ "$dlquality" == "FLAC" ]; then
         if [ "$verificationerror" == "1" ]; then
             echo "File Verification Error :: Downloading missing tracks as MP3"
-            CreateLinks
             dlquality="320"
             AlbumDL
-            RemoveLinks
             dlquality="FLAC"
             FileVerification
         fi
@@ -636,64 +634,6 @@ ArtistAlbumCache () {
     fi
 }
 
-CreateLinks () {
-    echo "Creating symlinks to prevent duplicates"
-    # folder="$(find "$LIBRARY" -iname "*($DeezerArtistID)" -type d)"
-    find "$LIBRARY" -iname "*.m4a" -type f -exec bash -c '
-        for file do
-            flaclink="${file%.m4a}.flac"
-            mp3link="${file%.m4a}.mp3"
-            ln -s "$file" "$flaclink"
-            ln -s "$file" "$mp3link"
-        done' bash {} + &> /dev/null
-    find "$LIBRARY" -iname "*.opus" -type f -exec bash -c '
-        for file do
-            flaclink="${file%.opus}.flac"
-            mp3link="${file%.opus}.mp3"
-            ln -s "$file" "$flaclink"
-            ln -s "$file" "$mp3link"
-        done' bash {} + &> /dev/null
-    find "$LIBRARY" -iname "*.flac" -type f -exec bash -c '
-        for file do
-            mp3link="${file%.flac}.mp3"
-            ln -s "$file" "$mp3link"
-        done' bash {} + &> /dev/null
-    find "$LIBRARY" -iname "*.mp3" -type f -exec bash -c '
-        for file do
-            flaclink="${file%.mp3}.flac"
-            ln -s "$file" "$flaclink"
-        done' bash {} + &> /dev/null
-}
-
-RemoveLinks () {
-    echo "Removing duplicate symlinks Links"
-    # folder="$(find "$LIBRARY" -iname "*($DeezerArtistID)" -type d)"
-    find "$LIBRARY" -iname "*.m4a" -type f -exec bash -c '
-        for file do
-            flaclink="${file%.m4a}.flac"
-            mp3link="${file%.m4a}.mp3"
-            unlink "$flaclink"
-            unlink "$mp3link"
-        done' bash {} + &> /dev/null
-    find "$LIBRARY" -iname "*.opus" -type f -exec bash -c '
-        for file do
-            flaclink="${file%.opus}.flac"
-            mp3link="${file%.opus}.mp3"
-            unlink "$flaclink"
-            unlink "$mp3link"
-        done' bash {} + &> /dev/null
-    find "$LIBRARY" -iname "*.flac" -type f -exec bash -c '
-        for file do
-            mp3link="${file%.flac}.mp3"
-            unlink "$mp3link"
-        done' bash {} + &> /dev/null
-    find "$LIBRARY" -iname "*.mp3" -type f -exec bash -c '
-        for file do
-            flaclink="${file%.mp3}.flac"
-            unlink "$flaclink"
-        done' bash {} + &> /dev/null
-}
-
 ProcessArtistList () {
     for id in ${!list[@]}; do
         artistnumber=$(( $id + 1 ))
@@ -767,14 +707,14 @@ ProcessArtist () {
     elif find /config/ignore -type f -iname "${DeezerArtistID}" | read; then
         echo "Skipping :: $DeezerArtistID :: Ignore Artist ID Found... "
     else
-        CreateLinks
+        
 	sleep 2
         touch "/config/scripts/temp"
         AlbumDL
         if [ "$RemoveDuplicates" = "true" ]; then
             RemoveDuplicatesFunction
         fi
-        RemoveLinks
+	
         FileVerification
 
         if [ "$RemoveArtistWithoutImage" = "true" ]; then
