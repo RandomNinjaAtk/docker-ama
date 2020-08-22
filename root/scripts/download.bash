@@ -100,6 +100,17 @@ configuration () {
         echo "Download Format: $FORMAT"
         echo "Download File Bitrate: $ConversionBitrate"
     fi
+    
+    if [ ! -z "$replaygain" ]; then
+		if [ "$replaygain" == "true" ]; then 
+			echo "Audio: Replaygain Tagging: ENABLED"
+		else
+			echo "Audio: Replaygain Tagging: DISABLED"
+		fi
+	else
+		echo "WARNING: replaygain setting invalid, defaulting to: false"
+		replaygain="false"
+	fi
 
     if [ ! -z "$FilePermissions" ]; then
         echo "File Permissions: $FilePermissions"
@@ -140,6 +151,13 @@ configuration () {
 		exit 1
 	fi
 
+}
+
+AddReplaygainTags () {
+	if [ "$replaygain" == "true" ]; then
+		echo "Adding Replaygain Tags using r128gain to: $LIBRARY"
+		r128gain -r -a "$LIBRARY"
+	fi
 }
 
 LidarrListImport () {
@@ -710,6 +728,7 @@ ProcessArtist () {
 	sleep 2
         touch "/config/scripts/temp"
         AlbumDL
+	AddReplaygainTags
         if [ "$RemoveDuplicates" = "true" ]; then
             RemoveDuplicatesFunction
         fi
