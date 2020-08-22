@@ -10,13 +10,15 @@ from deemix.app import deemix
 class cli(deemix):
     def __init__(self, configFolder=None):
         super().__init__(configFolder)
-        self.set.settings["downloadLocation"] = "/downloads-amd/amd/dlclient"
+        self.set.settings["downloadLocation"] = "/downloads-ama"
         self.set.settings["tracknameTemplate"] = "%discnumber%%tracknumber% - %title% %explicit%"
         self.set.settings["albumTracknameTemplate"] = "%discnumber%%tracknumber% - %title% %explicit%"
         self.set.settings["artistNameTemplate"] = "%artist% (%artist_id%)"
         self.set.settings["albumNameTemplate"] = "%artist% - %type% - %year% - %album_id% - %album% %explicit%"
+        self.set.settings["createArtistFolder"] = True
+        self.set.settings["createSingleFolder"] = True
         self.set.settings["createCDFolder"] = False
-        self.set.settings["createAlbumFolder"] = False
+        self.set.settings["createAlbumFolder"] = True
         self.set.settings["saveArtworkArtist"] = True
         self.set.settings["queueConcurrency"] = 6
         self.set.settings["jpegImageQuality"] = 90
