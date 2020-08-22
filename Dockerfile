@@ -36,7 +36,7 @@ RUN \
 	chmod g+x /usr/local/bin/ffmpeg && \
 	chmod g+x /usr/local/bin/ffprobe && \
 	echo "************ install beets plugin dependencies ************" && \
-	pip3 install --no-cache-dir -U \
+	python3 -m pip install --no-cache-dir -U \
 		requests \
 		Pillow \
 		pylast \
