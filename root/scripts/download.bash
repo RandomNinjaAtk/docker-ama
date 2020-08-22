@@ -34,13 +34,14 @@ configuration () {
 		error=1
 	fi
 
-    if [ ! -z "$NumberConcurrentProcess" ]; then
-        echo "Number of Concurrent Processes: $NumberConcurrentProcess"
-        sed -i "s%\"queueConcurrency\": 3%\"queueConcurrency\": $NumberConcurrentProcess%g" "/xdg/deemix/config.json"
-    else
-		echo "ERROR: NumberConcurrentProcess setting invalid, defaulting  to: 3"
-        NumberConcurrentProcess="3"
+	if [ ! -z "$NumberConcurrentProcess" ]; then
+		echo "Number of Concurrent Processes: $NumberConcurrentProcess"
+		sed -i "s%queueConcurrency\"] = 1%queueConcurrency\"] = $NumberConcurrentProcess%g" "/config/scripts/dlclient.py"
+	else
+		echo "WARNING: NumberConcurrentProcess setting invalid, defaulting to: 1"
+		NumberConcurrentProcess="1"
 	fi
+
 
     if [ "$RELATED_ARTIST" = "true" ]; then
         echo "Related Artist: ENABLED"
