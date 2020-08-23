@@ -34,7 +34,8 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-e PGID=1000` | for GroupID - see below for explanation |
 | `-v /config` | Configuration files for AMA |
 | `-v /downloads-ama` | Downloaded library location |
-| `-e AUTOSTART="true"` | true = Enabled :: Runs script automatically on startup |
+| `-e AUTOSTART=true` | true = Enabled :: Runs script automatically on startup |
+| `-e mode=artist` | artist or discogrpahy :: artist mode downloads all albums listed as that artist, discography downloads all albums listed as that artist and featured in albums |
 | `-e RELATED_ARTIST=false` | true = enabled :: Enabling this lets the script crawl your artist list for related artists and process them |
 | `-e RELATED_ARTIST_RELATED=false` | true = enabled :: Enabling this lets the script crawl your related artists for additional related artists and process them accordingly :: WARNING this will cause an endless loop (spider crawling) until no more are found... |
 | `-e NumberConcurrentProcess=1` | Number of concurrent processes, controls download concurrency and encoding/tagging concurrency |
@@ -48,8 +49,8 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-e FolderPermissions=777` | Based on chmod linux permissions |
 | `-e ARL_TOKEN=ARLTOKEN` | User token for dl client, for instructions to obtain token: https://notabug.org/RemixDevs/DeezloaderRemix/wiki/Login+via+userToken |
 | `-e LidarrListImport=true` | true = enabled :: imports artist list from lidarr |
-| `-e LidarrUrl="http://127.0.0.1:8686"` | ONLY used if Lidarr List Import is enabled... |
-| `-e LidarrAPIkey="08d108d108d108d108d108d108d108d1"` | ONLY used if Lidarr List Import is enabled... |
+| `-e LidarrUrl=http://127.0.0.1:8686` | ONLY used if Lidarr List Import is enabled... |
+| `-e LidarrAPIkey=08d108d108d108d108d108d108d108d1` | ONLY used if Lidarr List Import is enabled... |
 
 
 
