@@ -6,8 +6,8 @@ LABEL maintainer="RandomNinjaAtk"
 # Add files from ffmpeg
 COPY --from=ffmpeg /usr/local/ /usr/local/
 
-ENV VERSION="0.0.1"
-ENV XDG_CONFIG_HOME="/xdg"
+ENV VERSION="0.0.2"
+ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 ENV PYTHON="python3"
 ENV PathToDLClient="/root/scripts/deemix"
 ENV library="/storage/media/music"
