@@ -20,6 +20,19 @@ configuration () {
 		echo "ERROR: Missing /downloads-ama docker volume"
 		error=1
 	fi
+	
+	if [ ! -z "$mode" ]; then
+		if [ "$mode" == "artist" ]; then
+			echo "Audio Download Mode: artist"
+		fi
+		
+		if [ "$mode" == "discography" ]; then
+			echo "Audio Download Mode: discography"
+		fi
+	else
+		echo "WARNING: mode setting invalid, defaulting to: artist"
+		mode="artist"
+	fi
 
 	if [ ! -z "$ARL_TOKEN" ]; then
 		echo "ARL Token: Configured"
@@ -131,7 +144,7 @@ configuration () {
 	if [ "$LidarrListImport" = "true" ]; then
 		echo "Lidarr List Import: ENABLED"
 		wantit=$(curl -s --header "X-Api-Key:"${LidarrAPIkey} --request GET  "$LidarrUrl/api/v1/Artist/")
-	    wantedtotal=$(echo "${wantit}"| jq -r '.[].sortName' | wc -l)
+		wantedtotal=$(echo "${wantit}"| jq -r '.[].sortName' | wc -l)
 		MBArtistID=($(echo "${wantit}" | jq -r ".[].foreignArtistId"))
 		if [ "$wantedtotal" -gt "0" ]; then
 			echo "Lidarr Connection : Successful"
@@ -726,7 +739,12 @@ CleanArtistsWithoutImage () {
 
 ProcessArtist () {
 	DeezerArtistID="$artistid"
-	dlurl="https://www.deezer.com/en/artist/${DeezerArtistID}"
+	if [ "$mode" == "artist" ]; then
+		dlurl="https://www.deezer.com/artist/${DeezerArtistID}"
+	fi
+	if [ "$mode" == "discography" ]; then
+		dlurl="https://www.deezer.com/artist/${DeezerArtistID}/discography"
+	fi
 	ArtistCache
 	amacomplete="$(cat "/config/cache/${DeezerArtistID}-info.json" | jq -r ".ama")"
 	if [ "$amacomplete" = "true" ]; then
@@ -760,7 +778,7 @@ ProcessArtist () {
 				sleep 60
 			fi
 		fi
-	AddReplaygainTags
+		AddReplaygainTags
 		Permissions
 		if [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
 			echo "ARTIST CACHE :: Updating with successful archive information..."
