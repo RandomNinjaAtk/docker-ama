@@ -155,8 +155,18 @@ configuration () {
 
 AddReplaygainTags () {
 	if [ "$replaygain" == "true" ]; then
-		echo "Adding Replaygain Tags using r128gain to: $LIBRARY"
-		r128gain -r -a -s -c $NumberConcurrentProcess "$LIBRARY"
+		if find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp" | read; then
+			OLDIFS="$IFS"
+			IFS=$'\n'
+			replaygainlist=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp"))
+			IFS="$OLDIFS"
+			for id in ${!replaygainlist[@]}; do
+				processid=$(( $id + 1 ))
+            			folder="${replaygainlist[$id]}"
+				echo "Adding Replaygain Tags using r128gain to: $folder"
+				r128gain -r -a -s -c $NumberConcurrentProcess "$folder"
+			done
+		fi
 	fi
 }
 
