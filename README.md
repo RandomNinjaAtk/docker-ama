@@ -5,6 +5,8 @@
 [![Docker Hub](https://img.shields.io/badge/Open%20On-DockerHub-blue)](https://hub.docker.com/r/randomninjaatk/ama)
 [![Discord](https://img.shields.io/discord/747100476775858276.svg?style=flat-square&label=Discord&logo=discord)](https://discord.gg/JumQXDc "realtime support / chat with the community." )
 
+[RandomNinjaAtk/ama](https://github.com/RandomNinjaAtk/docker-ama) is a script to automatically download music for use in other video applications (plex/kodi/jellyfin/emby) 
+
 [![RandomNinjaAtk/ama](https://raw.githubusercontent.com/RandomNinjaAtk/unraid-templates/master/randomninjaatk/img/ama.png)](https://github.com/RandomNinjaAtk/docker-ama)
 
 ## Supported Architectures
