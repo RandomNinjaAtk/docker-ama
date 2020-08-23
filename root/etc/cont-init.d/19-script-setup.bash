@@ -32,6 +32,11 @@ if [ ! -d "/config/ignore" ]; then
 	mkdir -p "/config/ignore"
 fi
 
+# create xdg directory if missing
+if [ ! -d "/config/deemix/xdg/deemix" ]; then
+	mkdir -p "/config/deemix/xdg/deemix"
+fi
+
 # set permissions
 chown -R abc:abc "/config"
 chown -R abc:abc "/scripts"
