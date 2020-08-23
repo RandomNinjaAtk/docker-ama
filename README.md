@@ -2,7 +2,7 @@
 ![Docker Build](https://img.shields.io/docker/cloud/automated/randomninjaatk/ama?style=flat-square)
 ![Docker Pulls](https://img.shields.io/docker/pulls/randomninjaatk/ama?style=flat-square)
 ![Docker Stars](https://img.shields.io/docker/stars/randomninjaatk/ama?style=flat-square)
-[![Docker Hub](https://img.shields.io/badge/Open%20On-DockerHub-blue)](https://hub.docker.com/r/randomninjaatk/ama)
+[![Docker Hub](https://img.shields.io/badge/Open%20On-DockerHub-blue?style=flat-square)](https://hub.docker.com/r/randomninjaatk/ama)
 [![Discord](https://img.shields.io/discord/747100476775858276.svg?style=flat-square&label=Discord&logo=discord)](https://discord.gg/JumQXDc "realtime support / chat with the community." )
 
 [RandomNinjaAtk/ama](https://github.com/RandomNinjaAtk/docker-ama) is a script to automatically archive music for use in other audio applications (plex/kodi/jellyfin/emby) 
@@ -65,6 +65,12 @@ Container images are configured using parameters passed at runtime (such as thos
   * Contains the log output from the script
 * <strong>/config/cache</strong>
   * Contains the artist data cache to speed up processes
+* <strong>/config/list</strong>
+  * Contains the artist id file's named `deezerid` for processing
+* <strong>/config/ignore</strong>
+  * Contains the artist id file's named `deezerid` to ignore
+* <strong>/config/deemix</strong>
+  * Contains deemix app data
   
 <br />
 <br />
