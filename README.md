@@ -35,7 +35,7 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-v /config` | Configuration files for AMA |
 | `-v /downloads-ama` | Downloaded library location |
 | `-e AUTOSTART=true` | true = Enabled :: Runs script automatically on startup |
-| `-e mode=artist` | artist or discogrpahy :: artist mode downloads all albums listed as that artist, discography downloads all albums listed as that artist and featured in albums |
+| `-e mode=artist` | artist or discography :: artist mode downloads all albums listed as that artist, discography downloads all albums listed as that artist and featured in albums |
 | `-e RELATED_ARTIST=false` | true = enabled :: Enabling this lets the script crawl your artist list for related artists and process them |
 | `-e RELATED_ARTIST_RELATED=false` | true = enabled :: Enabling this lets the script crawl your related artists for additional related artists and process them accordingly :: WARNING this will cause an endless loop (spider crawling) until no more are found... |
 | `-e NumberConcurrentProcess=1` | Number of concurrent processes, controls download concurrency and encoding/tagging concurrency |
