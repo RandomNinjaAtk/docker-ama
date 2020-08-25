@@ -38,6 +38,8 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-e mode=artist` | artist or discography :: artist mode downloads all albums listed as that artist, discography downloads all albums listed as that artist and featured in albums |
 | `-e RELATED_ARTIST=false` | true = enabled :: Enabling this lets the script crawl your artist list for related artists and process them |
 | `-e RELATED_ARTIST_RELATED=false` | true = enabled :: Enabling this lets the script crawl your related artists for additional related artists and process them accordingly :: WARNING this will cause an endless loop (spider crawling) until no more are found... |
+| `-e relatedcount=20` | Maximum number of related artists to import per artist (20 is max) |
+| `-e fancount=1000000` | Minimum number of fans required for processing |
 | `-e NumberConcurrentProcess=1` | Number of concurrent processes, controls download concurrency and encoding/tagging concurrency |
 | `-e Format=FLAC` | SET TO: ALAC or FLAC or AAC or MP3 or OPUS |
 | `-e ConversionBitrate=320` | FLAC -> OPUS/AAC/MP3 will be converted using this bitrate |
