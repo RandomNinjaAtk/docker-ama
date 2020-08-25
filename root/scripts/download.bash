@@ -821,7 +821,7 @@ ProcessArtistRelated () {
 			artistrelatedcount="$(echo "$artistrelatedfile" | jq -r ".total")"
 			if [ "$artistrelatedcount" -gt "0" ]; then
 				echo  "Processing $artistrelatedcount Related artists..."
-				artistrelatedidlist=($(echo "$artistrelatedfile" | jq -r ".data[] | select(.nb_fan >= $fancount) | .id" | head -n $relatedcount))
+				artistrelatedidlist=($(echo "$artistrelatedfile" | jq ".data[] | select(.nb_fan >= $fancount) | .id" | head -n $relatedcount))
 				for id in ${!artistrelatedidlist[@]}; do
 					relatedartistnumber=$(( $id + 1 ))
 					artistrelatedid="${artistrelatedidlist[$id]}"
