@@ -67,6 +67,22 @@ configuration () {
 	else
 		echo "Related Artist Related (loop): DISABLED"
 	fi
+	
+	if [ ! -z "$relatedcount" ]; then
+		echo "Artist Maximum Related Import Count: $relatedcount"
+	else
+		echo "ERROR: relatedcount not set, using default..."
+		relatedcount="20"
+		echo "Artist Maximum Related Import Count: $relatedcount"
+	fi
+	
+	if [ ! -z "$fancount" ]; then
+		echo "Related Artist Minimum Fan Count: $fancount"
+	else
+		echo "ERROR: fancount not set, using default..."
+		fancount="1000000"
+		echo "Related Artist Minimum Fan Count: $fancount"
+	fi
 
 	if [ ! -z "$FORMAT" ]; then
 		echo "Download Format: $FORMAT"
@@ -805,7 +821,7 @@ ProcessArtistRelated () {
 			artistrelatedcount="$(echo "$artistrelatedfile" | jq -r ".total")"
 			if [ "$artistrelatedcount" -gt "0" ]; then
 				echo  "Processing $artistrelatedcount Related artists..."
-				artistrelatedidlist=($(echo "$artistrelatedfile" | jq -r ".data | .[].id"))
+				artistrelatedidlist=($(echo "$artistrelatedfile" | jq -r ".data[] | select(.nb_fan >= $fancount) | .id" | head -n $relatedcount))
 				for id in ${!artistrelatedidlist[@]}; do
 					relatedartistnumber=$(( $id + 1 ))
 					artistrelatedid="${artistrelatedidlist[$id]}"
