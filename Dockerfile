@@ -1,7 +1,7 @@
 FROM lsiobase/ubuntu:bionic
 LABEL maintainer="RandomNinjaAtk"
 
-ENV VERSION="0.0.5"
+ENV VERSION="0.0.6"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
@@ -9,19 +9,13 @@ RUN \
 	apt-get update && \
 	apt-get upgrade -y && \
 	apt-get install -y --no-install-recommends \
-		wget \
-		nano \
-		unzip \
-		git \
 		jq \
 		mp3val \
 		flac \
 		opus-tools \
-		eyed3 \
-		python3 \
 		ffmpeg \
-		python3-pip \
-		libchromaprint-tools && \
+		python3 \
+		python3-pip && \
 	rm -rf \
 		/tmp/* \
 		/var/lib/apt/lists/* \
