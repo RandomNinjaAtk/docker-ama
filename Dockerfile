@@ -6,7 +6,7 @@ LABEL maintainer="RandomNinjaAtk"
 # Add files from ffmpeg
 COPY --from=ffmpeg /usr/local/ /usr/local/
 
-ENV VERSION="0.0.2"
+ENV VERSION="0.0.3"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 ENV PYTHON="python3"
 ENV PathToDLClient="/root/scripts/deemix"
@@ -14,8 +14,9 @@ ENV library="/storage/media/music"
 RUN \
 	echo "************ install dependencies ************" && \
 	echo "************ install packages ************" && \
-	apt-get update -qq && \
-	apt-get install -qq -y \
+	apt-get update && \
+	apt-get upgrade -y && \
+	apt-get install -y \
 		wget \
 		nano \
 		unzip \
@@ -35,15 +36,11 @@ RUN \
  	chgrp users /usr/local/bin/ffprobe && \
 	chmod g+x /usr/local/bin/ffmpeg && \
 	chmod g+x /usr/local/bin/ffprobe && \
-	echo "************ install beets plugin dependencies ************" && \
+	echo "************ install python packages ************" && \
 	python3 -m pip install --no-cache-dir -U \
-		requests \
-		Pillow \
-		pylast \
 		mutagen \
 		r128gain \
-		deemix \
-		pyacoustid && \
+		deemix && \
 	echo "************ setup dl client config directory ************" && \
 	echo "************ make directory ************" && \
 	mkdir -p "${XDG_CONFIG_HOME}/deemix"
