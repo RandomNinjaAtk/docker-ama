@@ -21,7 +21,7 @@ RUN \
 		python3 \
 		ffmpeg \
 		python3-pip \
-		libchromaprint-tools && 
+		libchromaprint-tools && \
 	rm -rf \
 		/tmp/* \
 		/var/lib/apt/lists/* \
