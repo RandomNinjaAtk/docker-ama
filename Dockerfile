@@ -6,7 +6,7 @@ LABEL maintainer="RandomNinjaAtk"
 # Add files from ffmpeg
 COPY --from=ffmpeg /usr/local/ /usr/local/
 
-ENV VERSION="0.0.3"
+ENV VERSION="0.0.4"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 ENV PYTHON="python3"
 ENV PathToDLClient="/root/scripts/deemix"
@@ -16,7 +16,7 @@ RUN \
 	echo "************ install packages ************" && \
 	apt-get update && \
 	apt-get upgrade -y && \
-	apt-get install -y \
+	apt-get install -y --no-install-recommends \
 		wget \
 		nano \
 		unzip \
