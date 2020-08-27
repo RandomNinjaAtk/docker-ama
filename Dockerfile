@@ -1,7 +1,7 @@
-FROM lsiobase/ubuntu:bionic
+FROM lsiobase/ubuntu:focal
 LABEL maintainer="RandomNinjaAtk"
 
-ENV VERSION="0.0.6"
+ENV VERSION="0.0.7"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
