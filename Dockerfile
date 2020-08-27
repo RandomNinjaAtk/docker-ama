@@ -1,7 +1,7 @@
 FROM lsiobase/ubuntu:focal
 LABEL maintainer="RandomNinjaAtk"
 
-ENV VERSION="0.0.7"
+ENV VERSION="0.0.8"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
@@ -22,6 +22,7 @@ RUN \
 		/var/tmp/* && \
 	echo "************ install python packages ************" && \
 	python3 -m pip install --no-cache-dir -U \
+		yq \
 		mutagen \
 		r128gain \
 		deemix && \
