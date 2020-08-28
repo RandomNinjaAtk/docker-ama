@@ -1,11 +1,12 @@
 FROM lsiobase/ubuntu:focal
 LABEL maintainer="RandomNinjaAtk"
 
-ENV VERSION="0.0.8"
+ENV TITLE="Automated Music Archiver (AMA)"
+ENV VERSION="1.0.0"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
-	echo "************ install packages ************" && \
+	echo "************ install and upgrade packages ************" && \
 	apt-get update && \
 	apt-get upgrade -y && \
 	apt-get install -y --no-install-recommends \
@@ -30,10 +31,11 @@ RUN \
 	echo "************ make directory ************" && \
 	mkdir -p "${XDG_CONFIG_HOME}/deemix"
     
-WORKDIR /
-
 # copy local files
 COPY root/ /
 
+# set work directory
+WORKDIR /config
+
 # ports and volumes
-VOLUME /config /downloads-ama
+VOLUME /config
