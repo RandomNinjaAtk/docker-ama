@@ -53,6 +53,9 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-e LidarrListImport=true` | true = enabled :: imports artist list from lidarr |
 | `-e LidarrUrl=http://127.0.0.1:8686` | ONLY used if Lidarr List Import is enabled... |
 | `-e LidarrAPIkey=08d108d108d108d108d108d108d108d1` | ONLY used if Lidarr List Import is enabled... |
+| `-e NOTIFYPLEX=true` | true = enabled :: Plex must have a library added and be configured to use the exact same mount point (/downloads-ama) |
+| `-e PLEXURL=http://127.0.0.1:32400` | ONLY used if NOTIFYPLEX is enabled... |
+| `-e PLEXTOKEN=plextoken` | ONLY used if NOTIFYPLEX is enabled... |
 
 
 
