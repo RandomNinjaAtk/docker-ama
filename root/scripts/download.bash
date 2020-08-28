@@ -3,8 +3,19 @@ export XDG_CONFIG_HOME="/config/deemix/xdg"
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
-configuration () {
-	echo "######################################### CONFIGURATION VERIFICATION #########################################"
+Configuration () {
+	processstartid="$(ps -A -o pid,cmd|grep "start.bash" | grep -v grep | head -n 1 | awk '{print $1}')"
+	processdownloadid="$(ps -A -o pid,cmd|grep "download.bash" | grep -v grep | head -n 1 | awk '{print $1}')"
+	echo "To kill script, use the following command:"
+	echo "kill -9 $processstartid"
+	echo "kill -9 $processdownloadid"
+	echo ""
+	echo ""
+	sleep 2.
+	echo "############################################ $TITLE"
+	echo "############################################ SCRIPT VERSION 1.0.0"
+	echo "############################################ DOCKER VERSION $VERSION"
+	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
 
 	if [ "$AUTOSTART" = "true" ]; then
@@ -95,7 +106,7 @@ configuration () {
 			setextension="flac"
 		elif [ "$FORMAT" = "OPUS" ]; then
 			dlquality="FLAC"
-			options="-acodec libopus -ab ${bitConversionBitratekrate}k -application audio -vbr off"
+			options="-acodec libopus -ab ${ConversionBitrate}k -application audio -vbr off"
 		    setextension="opus"
 			echo "Download File Bitrate: $ConversionBitrate"
 		elif [ "$FORMAT" = "AAC" ]; then
@@ -276,47 +287,16 @@ ArtistCache () {
 ConverterTagger () {
 
 	flacfilecount=$(find "$LIBRARY" -iname "*.flac" | wc -l)
-	mp3filecount=$(find "$LIBRARY" -iname "*.mp3" | wc -l)
 	echo "Number of FLAC files to process $flacfilecount"
-	echo "Number of MP3 files to process $mp3filecount"
-
-
 	echo "Processing Files using $NumberConcurrentProcess Threads"
-	N=$NumberConcurrentProcess
-	(
-	    find "$LIBRARY" -iname "*.flac" -print0 | while IFS= read -r -d '' file; do
-	    ((i=i%N)); ((i++==0)) && wait
-	    ProcessFlacFiles "$file" &
-	    done
-	    wait
-	)
-	wait
-
-	if [ "$FORMAT" == "ALAC" ]; then
-		ORIGFORMAT="$FORMAT"
-		FORMAT="AAC"
-		origoptions="$options"
-		options="-c:a libfdk_aac -b:a ${ConversionBitrate}k -movflags faststart"
-	else
-		ORIGFORMAT="$FORMAT"
-		origoptions="$options"
-	fi
-	if [ "$FORMAT" != "MP3" ]; then
-		N=$NumberConcurrentProcess
-		(
-			find "$LIBRARY" -iname "*.mp3" -print0 | while IFS= read -r -d '' file; do
-				((i=i%N)); ((i++==0)) && wait
-				ProcessMP3Files "$file" &
-			done
-			wait
-		)
-		wait
-	fi
-	if [ ! -z "$ORIGFORMAT" ]; then
-		FORMAT="$ORIGFORMAT"
-		options="$origoptions"
-	fi
-
+    find "$LIBRARY" -iname "*.flac" -print0 | while IFS= read -r -d '' file; do
+		if [ ! -f "${file%.flac}.$setextension" ]; then
+			Tag "$file"
+		fi
+		if [ ! -f "${file%.flac}.$setextension" ]; then
+			echo "Failed Encoding and Tagging: $file"
+		fi
+    done
 }
 
 
@@ -580,12 +560,22 @@ Tag () {
 
 	if [ -f "$file" ]; then
 		if [ ! -f "$filedest" ]; then
-			if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options "$filedest" < /dev/null; then
-				if [ -f "$filedest" ]; then
-					echo "Encoding Succcess :: $FORMAT :: $directory :: $filename"
-				fi
+			if [ "$FORMAT" = "OPUS" ]; then 
+				if opusenc --bitrate $ConversionBitrate --vbr "$file" "$filedest" 2> /dev/null; then
+					if [ -f "$filedest" ]; then
+						echo "Encoding Succcess :: $FORMAT :: $directory :: $filename"
+					fi
+				else
+					echo "Error"
+				fi			
 			else
-				echo "Error"
+				if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options "$filedest" < /dev/null; then
+					if [ -f "$filedest" ]; then
+						echo "Encoding Succcess :: $FORMAT :: $directory :: $filename"
+					fi
+				else
+					echo "Error"
+				fi
 			fi
 		fi
 		if [ ! -f "$filedest" ]; then
@@ -632,28 +622,6 @@ Tag () {
 			rm "$file"
 			echo "Deleted :: $directory :: $filename"
 		fi
-	fi
-
-}
-
-ProcessFlacFiles () {
-
-	if [ ! -f "${file%.flac}.$setextension" ]; then
-		Tag "$file"
-	fi
-	if [ ! -f "${file%.flac}.$setextension" ]; then
-		echo "Failed Encoding and Tagging: $file"
-	fi
-
-}
-
-ProcessMP3Files () {
-
-	if [ ! -f "${file%.mp3}.$setextension" ]; then
-		Tag "$file"
-	fi
-	if [ ! -f "${file%.mp3}.$setextension" ]; then
-		echo "Failed Encoding and Tagging: $file"
 	fi
 
 }
@@ -966,17 +934,8 @@ PlexNotification () {
 	fi
 }
 
-echo "STARTING ENGINE"
-processstartid="$(pgrep -f /config/scripts/start.bash)"
-processdownloadid="$(pgrep -f /config/scripts/download.bash)"
-echo "To kill script, use the following command:"
-echo "kill -9 $processstartid"
-echo "kill -9 $processdownloadid"
-echo ""
-echo ""
-configuration
-echo ""
-echo ""
+
+Configuration
 CleanCacheCheck
 
 
@@ -1050,9 +1009,7 @@ if ls /config/list | read; then
 else
 	echo "No artists to process, add artist files to list directory"
 fi
-echo ""
-echo ""
+
 Permissions
 
-echo "STOPPING ENGINE"
 exit 0
