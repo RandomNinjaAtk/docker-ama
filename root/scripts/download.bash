@@ -173,6 +173,12 @@ configuration () {
 	else
 		echo "Lidarr List Import: DISABLED"
 	fi
+	
+	if [ "$NOTIFYPLEX" == "true" ]; then
+		echo "Plex Library Notification: ENABLED"
+	else
+		echo "Plex Library Notification: DISABLED"
+	fi
 
 	if [ $error = 1 ]; then
 		echo "Please correct errors before attempting to run script again..."
@@ -796,6 +802,7 @@ ProcessArtist () {
 		fi
 		AddReplaygainTags
 		Permissions
+		PlexNotification
 		if [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
 			echo "ARTIST CACHE :: Updating with successful archive information..."
 			mv "/config/cache/${DeezerArtistID}-info.json" "/config/cache/${DeezerArtistID}-temp-info.json"
@@ -936,6 +943,29 @@ AddMissingArtists () {
 	done
 }
 
+PlexNotification () {
+
+	if [ "$NOTIFYPLEX" == "true" ]; then
+		if find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp" | read; then
+			plexlibraries="$(curl -s "$PLEXURL/library/sections?X-Plex-Token=$PLEXTOKEN" | xq .)"
+			plexlibrarykey="$(echo "$plexlibraries" | jq -r ".MediaContainer.Directory[] | select(.Location.\"@path\"==\"$LIBRARY\") | .\"@key\"")"
+			if [ ! -z "$plexlibrarykey" ]; then
+				OLDIFS="$IFS"
+				IFS=$'\n'
+				updatedfolders=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d  -newer "/config/scripts/temp"))
+				IFS="$OLDIFS"
+				for id in ${!updatedfolders[@]}; do
+					processid=$(( $id + 1 ))
+					plexfolder="${updatedfolders[$id]}"
+					plexfolderencoded="$(jq -R -r @uri <<<"${plexfolder}")"
+					curl -s "$PLEXURL/library/sections/$plexlibrarykey/refresh?path=$plexfolderencoded&X-Plex-Token=$PLEXTOKEN"
+					echo "Plex Scan notification sent! ($plexfolder)"
+				done
+			fi
+		fi
+	fi
+}
+
 echo "STARTING ENGINE"
 processstartid="$(pgrep -f /config/scripts/start.bash)"
 processdownloadid="$(pgrep -f /config/scripts/download.bash)"
@@ -948,6 +978,8 @@ configuration
 echo ""
 echo ""
 CleanCacheCheck
+
+
 if [ "$LidarrListImport" = "true" ]; then
 	LidarrListImport
 fi
