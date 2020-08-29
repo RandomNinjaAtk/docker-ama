@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.0.1"
+	echo "############################################ SCRIPT VERSION 1.0.2"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -576,7 +576,7 @@ Tag () {
 						echo "$logheader :: Encoding Succcess :: $FORMAT :: $directory :: $filename"
 					fi
 				else
-					echo "Error"
+					echo "$logheader :: Error"
 				fi			
 			else
 				if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options "$filedest" < /dev/null; then
@@ -717,6 +717,7 @@ ProcessArtist () {
 
 	sleep 2
 		touch "/config/scripts/temp"
+		echo "$logheader :: Starting Download..."
 		AlbumDL
 		if [ "$RemoveDuplicates" = "true" ]; then
 			RemoveDuplicatesFunction
@@ -846,7 +847,7 @@ RemoveDuplicatesFunction () {
 			Type="$(echo "${foldersplit[1]}" | sed 's/ *$//g' | sed 's/^ *//g')"
 			Year="$(echo "${foldersplit[2]}" | sed 's/ *$//g' | sed 's/^ *//g')"
 			Album="$(echo "${foldersplit[4]}" | sed 's/ *$//g' | sed 's/^ *//g' | sed 's/ (Explicit)//g')"
-			find "$LIBRARY" -type d -iname "${Artist} - ${Type} - * - * - ${Album}" -not -iname "* (Explicit)" -exec rm -rf {} \;
+			find "$LIBRARY" -type d -iname "${Artist} - ${Type} - * - * - ${Album}" -not -iname "* (Explicit)" -exec rm -rf {} \; &> /dev/null
 
 		done
 
@@ -865,7 +866,9 @@ RemoveDuplicatesFunction () {
 			Year="$(echo "${foldersplit[2]}" | sed 's/ *$//g' | sed 's/^ *//g')"
 			Album="$(echo "${foldersplit[4]}" | sed 's/ *$//g' | sed 's/^ *//g')"
 			if find "$LIBRARY" -type d -iname "${Artist} - Album - * - * - ${Album} (Deluxe*" -not -iname "* (Explicit)" | read; then
-				rm -rf "$folder"
+				if [ -d "$folder" ]; then
+					rm -rf "$folder"
+				fi
 			fi
 		done
 	fi
