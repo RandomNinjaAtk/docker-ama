@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.0.0"
+	echo "############################################ SCRIPT VERSION 1.0.1"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -187,9 +187,18 @@ Configuration () {
 	
 	if [ "$NOTIFYPLEX" == "true" ]; then
 		echo "Plex Library Notification: ENABLED"
+		plexlibraries="$(curl -s "$PLEXURL/library/sections?X-Plex-Token=$PLEXTOKEN" | xq .)"
+		plexlibrarykey="$(echo "$plexlibraries" | jq -r ".MediaContainer.Directory[] | select(.Location.\"@path\"==\"$LIBRARY\") | .\"@key\"" | head -n 1)"
+		if [ -z "$plexlibrarykey" ]; then
+			echo "ERROR: No Plex Library found containg path \"/downloads-ama\""
+			echo "ERROR: Add /downloads-ama as a folder to a Plex Music Library or Disable NOTIFYPLEX"
+			error=1
+		fi
 	else
 		echo "Plex Library Notification: DISABLED"
 	fi
+	
+	
 
 	if [ $error = 1 ]; then
 		echo "Please correct errors before attempting to run script again..."
@@ -208,8 +217,8 @@ AddReplaygainTags () {
 			IFS="$OLDIFS"
 			for id in ${!replaygainlist[@]}; do
 				processid=$(( $id + 1 ))
-						folder="${replaygainlist[$id]}"
-				echo "Adding Replaygain Tags using r128gain to: $folder"
+				folder="${replaygainlist[$id]}"
+				echo "$logheader :: Adding Replaygain Tags using r128gain to: $folder"
 				r128gain -r -a -s -c $NumberConcurrentProcess "$folder"
 			done
 		fi
@@ -229,7 +238,7 @@ LidarrListImport () {
 			if [ -f "/config/list/$lidarrdeezerid" ]; then
 			   rm "/config/list/$lidarrdeezerid"
 			fi
-	    if [ -f "/config/list/$lidarrdeezerid-related" ]; then
+	    		if [ -f "/config/list/$lidarrdeezerid-related" ]; then
 			   rm "/config/list/$lidarrdeezerid-related"
 			fi
 			if [ -f "/config/list/$lidarrdeezerid-complete" ]; then
@@ -246,9 +255,9 @@ LidarrListImport () {
 AlbumDL () {
 
 	if python3 /config/scripts/dlclient.py -b $dlquality "$dlurl"; then
-		echo "Downloads Complete"
+		echo "$logheader :: Downloads Complete"
 	else
-		echo "ERROR: DL CLient failed"
+		echo "$logheader :: ERROR: DL CLient failed"
 		exit 1
 	fi
 }
@@ -261,40 +270,42 @@ ArtistCache () {
 	if ! [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
 		if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}" -o "/config/temp/${DeezerArtistID}-temp-info.json"; then
 			jq "." "/config/temp/${DeezerArtistID}-temp-info.json" > "/config/cache/${DeezerArtistID}-info.json"
-			echo "AUDIO CACHE :: Caching Artist Info..."
+			echo "$logheader :: AUDIO CACHE :: Caching Artist Info..."
 			rm "/config/temp/${DeezerArtistID}-temp-info.json"
 		else
-			echo "AUDIO CACHE :: ERROR: Cannot communicate with Deezer"
+			echo "$logheader :: AUDIO CACHE :: ERROR: Cannot communicate with Deezer"
 		fi
 	fi
 
 	if ! [ -f "/config/cache/${DeezerArtistID}-related.json" ]; then
 		if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}/related" -o "/config/temp/${DeezerArtistID}-temp-related.json"; then
 			jq "." "/config/temp/${DeezerArtistID}-temp-related.json" > "/config/cache/${DeezerArtistID}-related.json"
-			echo "AUDIO CACHE :: Caching Artis tRelated Info..."
+			echo "$logheader :: AUDIO CACHE :: Caching Artist Related Info..."
 			rm "/config/temp/${DeezerArtistID}-temp-related.json"
 		else
-			echo "AUDIO CACHE :: ERROR: Cannot communicate with Deezer"
+			echo "$logheader:: AUDIO CACHE :: ERROR: Cannot communicate with Deezer"
 		fi
 	fi
-	# ArtistAlbumCache
+
 	if [ -d "/config/temp" ]; then
 		rm -rf "/config/temp"
 	fi
+	
+	artistname="$(cat "/config/cache/${DeezerArtistID}-info.json" | jq -r ".name")"
 
 }
 
 ConverterTagger () {
 
 	flacfilecount=$(find "$LIBRARY" -iname "*.flac" | wc -l)
-	echo "Number of FLAC files to process $flacfilecount"
-	echo "Processing Files using $NumberConcurrentProcess Threads"
-    find "$LIBRARY" -iname "*.flac" -print0 | while IFS= read -r -d '' file; do
+	echo "$logheader :: Number of FLAC files to process $flacfilecount"
+	echo "$logheader :: Processing Files using $NumberConcurrentProcess Threads"
+    	find "$LIBRARY" -iname "*.flac" -print0 | while IFS= read -r -d '' file; do
 		if [ ! -f "${file%.flac}.$setextension" ]; then
 			Tag "$file"
 		fi
 		if [ ! -f "${file%.flac}.$setextension" ]; then
-			echo "Failed Encoding and Tagging: $file"
+			echo "$logheader :: Failed Encoding and Tagging: $file"
 		fi
     done
 }
@@ -317,9 +328,9 @@ FileVerification () {
 						filename="$(basename "$fname")"
 						directory="$(basename "$(dirname "$fname")")"
 						if flac -t --totally-silent "$fname"; then
-							echo "Verified :: $directory :: $filename"
+							echo "$logheader :: Verified :: $directory :: $filename"
 						else
-							echo "ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
+							echo "$logheader :: ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
 							rm "$fname"
 						fi
 					done
@@ -329,9 +340,9 @@ FileVerification () {
 						filename="$(basename "$fname")"
 						directory="$(basename "$(dirname "$fname")")"
 						if mp3val -f -nb "$fname" > /dev/null; then
-							echo "Verified :: $directory :: $filename"
+							echo "$logheader :: Verified :: $directory :: $filename"
 						else
-							echo "ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
+							echo "$logheader :: ERROR: File verificatio failed :: $directory :: $filename :: deleting..."
 							rm "$fname"
 						fi
 					done
@@ -345,7 +356,7 @@ FileVerification () {
 
 	if [ "$dlquality" == "FLAC" ]; then
 		if [ "$verificationerror" == "1" ]; then
-			echo "File Verification Error :: Downloading missing tracks as MP3"
+			echo "$logheader :: File Verification Error :: Downloading missing tracks as MP3"
 			dlquality="320"
 			AlbumDL
 			dlquality="FLAC"
@@ -364,8 +375,7 @@ Tag () {
 	filelrc="${file%.$extension}.lrc"
 	cover="$(dirname "$1")/folder.jpg"
 	if [ ! -f "$file" ]; then
-		echo "ERROR: EXITING :: $file"
-		exit 0
+		echo "$logheader :: ERROR: EXITING :: $file"
 	fi
 	#reset tags
 	songtitle="null"
@@ -563,7 +573,7 @@ Tag () {
 			if [ "$FORMAT" = "OPUS" ]; then 
 				if opusenc --bitrate $ConversionBitrate --vbr "$file" "$filedest" 2> /dev/null; then
 					if [ -f "$filedest" ]; then
-						echo "Encoding Succcess :: $FORMAT :: $directory :: $filename"
+						echo "$logheader :: Encoding Succcess :: $FORMAT :: $directory :: $filename"
 					fi
 				else
 					echo "Error"
@@ -571,21 +581,20 @@ Tag () {
 			else
 				if ffmpeg -loglevel warning -hide_banner -nostats -i "$file" -n -vn $options "$filedest" < /dev/null; then
 					if [ -f "$filedest" ]; then
-						echo "Encoding Succcess :: $FORMAT :: $directory :: $filename"
+						echo "$logheader :: Encoding Succcess :: $FORMAT :: $directory :: $filename"
 					fi
 				else
-					echo "Error"
+					echo "$logheader :: Error"
 				fi
 			fi
 		fi
 		if [ ! -f "$filedest" ]; then
-			echo "ERROR: EXITING :: $directory :: $filename"
-			exit 0
+			echo "$logheader :: ERROR: EXITING :: $directory :: $filename"
 		fi
 	fi
 	if [ "$setextension" == "m4a" ]; then
 		if [ -f "$filedest" ]; then
-			echo "Tagging :: $directory :: $filename"
+			echo "$logheader :: Tagging :: $directory :: $filename"
 			python3 /config/scripts/tag.py \
 				--file "$filedest" \
 				--songtitle "$songtitle" \
@@ -620,48 +629,10 @@ Tag () {
 	if [ -f "$filedest" ]; then
 		if [ -f "$file" ]; then
 			rm "$file"
-			echo "Deleted :: $directory :: $filename"
+			echo "$logheader :: Deleted :: $directory :: $filename"
 		fi
 	fi
 
-}
-
-ArtistAlbumCache () {
-	if [ ! -f "/config/cache/$DeezerArtistID-checked" ]; then
-		if [ ! -f "/config/cache/$DeezerArtistID-album.json" ]; then
-			DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
-			if [ -z "$DeezerArtistAlbumList" ]; then
-				echo "AUDIO CACHE :: ERROR: Unable to retrieve albums from Deezer"
-			fi
-		fi
-	else
-		DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
-		newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[].id" | wc -l)"
-		if [ -z "$DeezerArtistAlbumList" ] || [ -z "${newalbumlist}" ]; then
-			echo "AUDIO CACHE :: $LidArtistNameCap :: ERROR: Unable to retrieve albums from Deezer"
-		fi
-	fi
-
-	if [ ! -f "/config/cache/$DeezerArtistID-checked" ]; then
-		DeezerArtistAlbumListID=($(echo "${DeezerArtistAlbumList}" | jq ".data | .[].id"))
-		DeezerArtistName=($(echo "${DeezerArtistAlbumList}" | jq ".data | .[].id"))
-		for id in ${!DeezerArtistAlbumListID[@]}; do
-			albumid="${DeezerArtistAlbumListID[$id]}"
-			if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "/config/temp/${albumid}-temp-album.json"; then
-				sleep 0.5
-				albumtitle="$(cat "/config/temp/${albumid}-temp-album.json" | jq ".title")"
-				actualtracktotal=$(cat "/config/temp/${albumid}-temp-album.json" | jq -r ".tracks.data | .[] | .id" | wc -l)
-				sanatizedalbumtitle="$(echo "$albumtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/bash /config/scripts\L&/g')"
-				jq ". + {\"sanatized_album_name\": \"$sanatizedalbumtitle\"} + {\"actualtracktotal\": $actualtracktotal}" "/config/temp/${albumid}-temp-album.json" > "/config/temp/${albumid}-album.json"
-				rm "/config/temp/${albumid}-temp-album.json"
-				sleep 0.1
-			else
-				echo "AUDIO CACHE :: $LidArtistNameCap :: Error getting album information"
-			fi
-		done
-		jq -s '.' /config/temp/*-album.json > "/config/cache/$DeezerArtistID-albumlist.json"
-		touch "/config/cache/$DeezerArtistID-checked"
-	fi
 }
 
 ProcessArtistList () {
@@ -669,7 +640,8 @@ ProcessArtistList () {
 		artistnumber=$(( $id + 1 ))
 		artistid="${list[$id]}"
 		DeezerArtistID="$artistid"
-		echo "$artistnumber :: $artistid"
+		logheader="$artistnumber of $listcount :: $artistid"
+		echo "$logheader :: Processing..."
 		ProcessArtist
 	done
 }
@@ -736,11 +708,11 @@ ProcessArtist () {
 		dlurl="https://www.deezer.com/artist/${DeezerArtistID}/discography"
 	fi
 	ArtistCache
-	amacomplete="$(cat "/config/cache/${DeezerArtistID}-info.json" | jq -r ".ama")"
-	if [ "$amacomplete" = "true" ]; then
-		echo "ARCHIVING :: $DeezerArtistID :: Already archived..."
+	logheader="$logheader :: $artistname"
+	if [ -f "/config/cache/${DeezerArtistID}-complete" ]; then
+		echo "$logheader :: Already archived..."
 	elif find /config/ignore -type f -iname "${DeezerArtistID}" | read; then
-		echo "Skipping :: $DeezerArtistID :: Ignore Artist ID Found... "
+		echo "$logheader :: Skipping :: Ignore Artist ID Found... "
 	else
 
 	sleep 2
@@ -772,10 +744,8 @@ ProcessArtist () {
 		Permissions
 		PlexNotification
 		if [ -f "/config/cache/${DeezerArtistID}-info.json" ]; then
-			echo "ARTIST CACHE :: Updating with successful archive information..."
-			mv "/config/cache/${DeezerArtistID}-info.json" "/config/cache/${DeezerArtistID}-temp-info.json"
-			jq ". + {\"ama\": \"true\"}" "/config/cache/${DeezerArtistID}-temp-info.json" > "/config/cache/${DeezerArtistID}-info.json"
-			rm "/config/cache/${DeezerArtistID}-temp-info.json"
+			echo "$logheader :: ARTIST CACHE :: Updating with successful archive information..."
+			touch "/config/cache/${DeezerArtistID}-complete"
 		fi
 		rm "/config/scripts/temp"
 	fi
@@ -795,11 +765,13 @@ ProcessArtistRelated () {
 			artistrelatedfile="$(cat "/config/cache/${DeezerArtistID}-related.json")"
 			artistrelatedcount="$(echo "$artistrelatedfile" | jq -r ".total")"
 			if [ "$artistrelatedcount" -gt "0" ]; then
-				echo  "Processing $artistrelatedcount Related artists..."
+				echo  "Processing Artist ID: ${DeezerArtistID} :: $artistrelatedcount Related artists..."
 				artistrelatedidlist=($(echo "$artistrelatedfile" | jq ".data[] | select(.nb_fan >= $fancount) | .id" | head -n $relatedcount))
+				artistrelatedidlistcount=$(echo "$artistrelatedfile" | jq ".data[] | select(.nb_fan >= $fancount) | .id" | head -n $relatedcount | wc -l)
+				echo  "Processing Artist ID: ${DeezerArtistID} :: $artistrelatedidlistcount Related artists matching minimum fancount of $fancount"
 				for id in ${!artistrelatedidlist[@]}; do
 					relatedartistnumber=$(( $id + 1 ))
-					artistrelatedid="${artistrelatedidlist[$id]}"
+					artistrelatedid="${artistrelatedidlist[$id]}"					
 					if [ ! -f "/config/list/$artistrelatedid-related" ]; then
 						touch "/config/list/$artistrelatedid-related"
 					fi
@@ -831,6 +803,9 @@ CleanCacheCheck () {
 				if [ "${onlinealbumlistcount}" -ne "${cachealbumlistcount}" ]; then
 					echo "Cache Artist ID: $artistid invalid... removing..."
 					rm "/config/cache/$artistid-info.json"
+					if [ -f "/config/cache/${artistid}-complete" ]; then
+						rm "/config/cache/${artistid}-complete"
+					fi
 				else
 					echo "Cache Artist ID: $artistid still valid... updating timestamp..."
 					touch "/config/cache/$artistid-info.json"
@@ -857,7 +832,7 @@ RemoveDuplicatesFunction () {
 		explicitfolderlist=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -iname "* (Explicit)" -newer "/config/scripts/temp"))
 		cleanfolderlist=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -not -iname "* (Explicit)" -not -iname "* (Deluxe*" -newer "/config/scripts/temp"))
 		IFS="$OLDIFS"
-		echo "Removing Duplicate Clean Albums"
+		echo "$logheader :: Removing Duplicate Clean Albums"
 		for id in ${!explicitfolderlist[@]}; do
 			processid=$(( $id + 1 ))
 			folder="${explicitfolderlist[$id]}"
@@ -875,7 +850,7 @@ RemoveDuplicatesFunction () {
 
 		done
 
-		echo "Removing Duplicate non-deluxe Clean Albums"
+		echo "$logheader :: Removing Duplicate non-deluxe Clean Albums"
 		for id in ${!cleanfolderlist[@]}; do
 			processid=$(( $id + 1 ))
 			folder="${cleanfolderlist[$id]}"
@@ -915,21 +890,17 @@ PlexNotification () {
 
 	if [ "$NOTIFYPLEX" == "true" ]; then
 		if find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp" | read; then
-			plexlibraries="$(curl -s "$PLEXURL/library/sections?X-Plex-Token=$PLEXTOKEN" | xq .)"
-			plexlibrarykey="$(echo "$plexlibraries" | jq -r ".MediaContainer.Directory[] | select(.Location.\"@path\"==\"$LIBRARY\") | .\"@key\"")"
-			if [ ! -z "$plexlibrarykey" ]; then
-				OLDIFS="$IFS"
-				IFS=$'\n'
-				updatedfolders=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d  -newer "/config/scripts/temp"))
-				IFS="$OLDIFS"
-				for id in ${!updatedfolders[@]}; do
-					processid=$(( $id + 1 ))
-					plexfolder="${updatedfolders[$id]}"
-					plexfolderencoded="$(jq -R -r @uri <<<"${plexfolder}")"
-					curl -s "$PLEXURL/library/sections/$plexlibrarykey/refresh?path=$plexfolderencoded&X-Plex-Token=$PLEXTOKEN"
-					echo "Plex Scan notification sent! ($plexfolder)"
-				done
-			fi
+			OLDIFS="$IFS"
+			IFS=$'\n'
+			updatedfolders=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d  -newer "/config/scripts/temp"))
+			IFS="$OLDIFS"
+			for id in ${!updatedfolders[@]}; do
+				processid=$(( $id + 1 ))
+				plexfolder="${updatedfolders[$id]}"
+				plexfolderencoded="$(jq -R -r @uri <<<"${plexfolder}")"
+				curl -s "$PLEXURL/library/sections/$plexlibrarykey/refresh?path=$plexfolderencoded&X-Plex-Token=$PLEXTOKEN"
+				echo "$logheader :: Plex Scan notification sent! ($plexfolder)"
+			done
 		fi
 	fi
 }
@@ -937,23 +908,25 @@ PlexNotification () {
 
 Configuration
 CleanCacheCheck
-
-
-if [ "$LidarrListImport" = "true" ]; then
-	LidarrListImport
-fi
-if [ "$CompleteMyArtists" = "true" ]; then
-	AddMissingArtists
-fi
-if  [ "$RELATED_ARTIST" = "true" ]; then
-	ProcessArtistRelated
+echo "############################################ SCRIPT START"
+if [ "$LidarrListImport" = "true" ] || [ "$CompleteMyArtists" = "true" ] || [ "$RELATED_ARTIST" = "true" ]; then
+	echo "Adding Missing Artist ID's..."
+	if [ "$LidarrListImport" = "true" ]; then
+		LidarrListImport
+	fi
+	if [ "$CompleteMyArtists" = "true" ]; then
+		AddMissingArtists
+	fi
+	if  [ "$RELATED_ARTIST" = "true" ]; then
+		ProcessArtistRelated
+	fi
 fi
 if ls /config/list | read; then
 	if ls /config/list -I "*-related" -I "*-lidarr" -I "*-complete" | read; then
 		listcount="$(ls /config/list -I "*-related" -I "*-lidarr" -I "*-complete" | wc -l)"
-		listtext="$listcount Artists"
+		listregtext="$listcount Artists (Not realted/imported)"
 	else
-		listtext="0 Artists"
+		listregtext="0 Artists (Not realted/imported)"
 	fi
 
 	if ls /config/list/*-related 2> /dev/null | read; then
@@ -994,8 +967,10 @@ if ls /config/list | read; then
 
 	listcount="$(find /config/list -mindepth 1${lidarroption}${relatedoption}${completeoption} | sed 's%/config/list/%%g' | cut -f1 -d "-" | sort -u | wc -l)"
 	list=($(find /config/list -mindepth 1${lidarroption}${relatedoption}${completeoption} | sed 's%/config/list/%%g' | cut -f1 -d "-" | sort -u))
-	echo "Processing :: $listcount Artists"
-	echo "$listtext"
+	echo "Finding Artist ID files"
+	echo "$listcount Artists Found!"
+	echo "Artist List comprised of:"
+	echo "$listregtext"
 	if [ "$RELATED_ARTIST" = "true" ]; then
 		echo "$relatedtext"
 	fi
@@ -1011,5 +986,5 @@ else
 fi
 
 Permissions
-
+echo "############################################ SCRIPT END"
 exit 0
