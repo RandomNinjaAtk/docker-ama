@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.0"
+	echo "############################################ SCRIPT VERSION 1.1.1"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -457,7 +457,7 @@ ProcessArtist () {
 				find /downloads-ama/temp -type f -exec chmod $FILE_PERMISIONS {} \;
 				chown -R abc:abc /downloads-ama/temp
 			else
-				echo "$logheader :: DOWNLOAD :: ERROR :: No files found"
+				echo "$logheader :: ERROR :: No files found"
 				continue
 			fi
 		fi
@@ -483,7 +483,7 @@ ProcessArtist () {
 		chmod $FILE_PERMISIONS "$artistfolder/$albumfolder"/*
 		chown -R abc:abc "$artistfolder/$albumfolder"
 		if [ -f /config/cache/artists/$albumartistid/folder.jpg ]; then
-			if [ "$blankartistimage" == false ]; then
+			if [ "$blankartistimage" == "false" ]; then
 				if [ ! -f "$artistfolder/folder.jpg" ]; then
 					if [ $albumartistid != 5080 ]; then
 						cp /config/cache/artists/$albumartistid/folder.jpg "$artistfolder/folder.jpg"
@@ -600,16 +600,16 @@ DownloadQualityCheck () {
 	if [ "$REQUIRE_QUALITY" == "true" ]; then
 		echo "$logheader :: DOWNLOAD :: Checking for unwanted files"
 		if [ "$quality" == "FLAC" ]; then
-			if find "$DOWNLOADS"/amd/dlclient -iname "*.mp3" | read; then
+			if find /downloads-ama/temp -iname "*.mp3" | read; then
 				echo "$logheader :: DOWNLOAD :: Unwanted files found!"
 				echo "$logheader :: DOWNLOAD :: Performing cleanup..."
-				rm "$DOWNLOADS"/amd/dlclient/*
+				rm /downloads-ama/temp/*
 			fi
 		else
-			if find "$DOWNLOADS"/amd/dlclient -iname "*.flac" | read; then
+			if find /downloads-ama/temp -iname "*.flac" | read; then
 				echo "$logheader :: DOWNLOAD :: Unwanted files found!"
 				echo "$logheader :: DOWNLOAD :: Performing cleanup..."
-				rm "$DOWNLOADS"/amd/dlclient/*
+				rm /downloads-ama/temp/*
 			fi
 		fi
 	fi
