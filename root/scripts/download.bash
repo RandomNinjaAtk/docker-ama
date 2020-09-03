@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.2"
+	echo "############################################ SCRIPT VERSION 1.1.3"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -667,38 +667,14 @@ ArtistAlbumList () {
 ArtistDiscographyAlbumList () {
 
 	if [ $updateartistcache == true ]; then
-		resultscount="$(curl -s "https://api.deezer.com/search?q=%22${artistsearch}%22&limit=1" | jq -r ".total")"
+		resultscount="$(python3 /config/scripts/artist_discograpy.py "$artistid" | sort -u | wc -l)"
+		albumids=($(python3 /config/scripts/artist_discograpy.py "$artistid" | sort -u))
 		echo "$logheader :: Searching for All Albums...."
-		echo "$logheader :: $resultscount tracks found!"
+		echo "$logheader :: $resultscount Albums found!"
 
 		if [ ! -d "/config/temp" ]; then
 			mkdir "/config/temp"
 		fi
-
-		offsetcount=$(( $resultscount / 100 ))
-		for ((i=0;i<=$offsetcount;i++)); do
-			if [ ! -f "recording-page-$i.json" ]; then
-				if [ $i != 0 ]; then
-					offset=$(( $i * 100 ))
-					dlnumber=$(( $offset + 100))
-				else
-					offset=0
-					dlnumber=$(( $offset + 100))
-				fi
-				page=$(( $i + 1 ))
-				echo "$logheader :: Downloading page $page... ($offset - $dlnumber Results)"
-				curl -s "https://api.deezer.com/search?q=%22${artistsearch}%22&limit=1000&index=$offset" -o "/config/temp/$artistid-recording-page-$i.json"
-			fi
-		done
-
-		artistsearchdata=$(jq -s '.' /config/temp/*-recording-page-*.json)
-		rm /config/temp/$artistid-recording-page-*.json
-
-		albumcount=$(echo "$artistsearchdata" | jq -r  ".[].data[]| .album.id" | sort -u | wc -l)
-		albumids=($(echo "$artistsearchdata" | jq -r  ".[].data[]| .album.id" | sort -u))
-
-		echo "$logheader :: Finding unique albums"
-		echo "$logheader :: $albumcount albums found!"
 
 		for id in ${!albumids[@]}; do
 			currentprocess=$(( $id + 1 ))
