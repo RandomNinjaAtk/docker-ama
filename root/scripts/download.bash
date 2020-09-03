@@ -632,7 +632,6 @@ AddMissingArtists () {
 			continue
 		fi
 		if [ ! -f "/config/list/$completeartistid-complete" ]; then
-			echo "Adding missing artistid $completeartistid"
 			touch "/config/list/$completeartistid-complete"
 		fi
 	done
