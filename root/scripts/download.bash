@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.12"
+	echo "############################################ SCRIPT VERSION 1.1.13"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -598,7 +598,6 @@ ProcessArtistRelated () {
 	else
 		relatedprocesslist=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
 	fi
-	echo "RELATED"
 	for id in ${!relatedprocesslist[@]}; do
 		artistnumber=$(( $id + 1 ))
 		artistid="${relatedprocesslist[$id]}"
@@ -760,7 +759,6 @@ Main () {
 	Configuration
 	echo "############################################ SCRIPT START"
 	if [ "$LIDARR_LIST_IMPORT" = "true" ] || [ "$COMPLETE_MY_ARTISTS" = "true" ] || [ "$RELATED_ARTIST" = "true" ]; then
-		echo "Adding Missing Artist ID's..."
 		if [ "$LIDARR_LIST_IMPORT" = "true" ]; then
 			LidarrListImport
 		fi
@@ -817,8 +815,8 @@ Main () {
 
 		listcount="$(find /config/list -mindepth 1${lidarroption}${relatedoption}${completeoption} | sed 's%/config/list/%%g' | cut -f1 -d "-" | sort -u | wc -l)"
 		list=($(find /config/list -mindepth 1${lidarroption}${relatedoption}${completeoption} | sed 's%/config/list/%%g' | cut -f1 -d "-" | sort -u))
-		echo "Finding Artist ID files"
 		echo "$listcount Artists Found!"
+		echo "#########################"
 		echo "Artist List comprised of:"
 		echo "$listregtext"
 		if [ "$RELATED_ARTIST" = "true" ]; then
@@ -830,6 +828,9 @@ Main () {
 		if [ "$COMPLETE_MY_ARTISTS" = "true" ]; then
 			echo "$completetext"
 		fi
+		echo "#########################"
+		echo "#####PROCESSING LIST#####"
+		echo "#########################"
 		ProcessArtistList
 	else
 		echo "No artists to process, add artist files to list directory"
