@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.9"
+	echo "############################################ SCRIPT VERSION 1.1.10"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -64,6 +64,15 @@ Configuration () {
 		echo "ERROR: ARL_TOKEN setting invalid, currently set to: $ARL_TOKEN"
 		error=1
 	fi
+	
+	if [ ! -z "$ALBUM_TYPE_FILTER" ]; then
+		ALBUM_FILTER=true
+		echo "$TITLESHORT: Album Type Filter: ENABLED"
+		echo "$TITLESHORT: Filtering: $ALBUM_TYPE_FILTER"		
+	else
+		echo "$TITLESHORT: Album Type Filter: DISABLED"
+	fi
+	
 
 	if [ ! -z "$CONCURRENT_DOWNLOADS" ]; then
 		echo "$TITLESHORT: Concurrent Downloads: $CONCURRENT_DOWNLOADS"
@@ -401,14 +410,15 @@ ProcessArtist () {
 		logheader="$logheader :: $albumprocess of $albumcount :: PROCESSING :: $albumartist :: ${albumtype^^} :: $albumyear :: $lyrictype :: $albumtitle"
 		echo "$logheader"
 
-		AlbumFilter
+		if [ $ALBUM_FILTER == true ]; then
+			AlbumFilter
 		
-		if [ $filtermatch == true ]; then
-			echo "$logheader :: Album Type matched unwanted filter "$filtertype", skipping..."
-			logheader="$logheaderstart"
-			continue
+			if [ $filtermatch == true ]; then
+				echo "$logheader :: Album Type matched unwanted filter "$filtertype", skipping..."
+				logheader="$logheaderstart"
+				continue
+			fi
 		fi
-
 		if find /config/ignore -type f -iname "$albumartistid" | read; then
 			echo "$logheader :: Ignored Artist found, skipping..."
 			logheader="$logheaderstart"
