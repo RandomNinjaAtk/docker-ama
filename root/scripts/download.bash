@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.15"
+	echo "############################################ SCRIPT VERSION 1.1.16"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -368,22 +368,30 @@ ProcessArtist () {
 		albumdata=$(echo "$albumlistdata" | jq -r ".[] | select(.id==$albumid)")
 		albumartistid="$(echo "$albumdata" | jq -r ".artist.id")"
 		albumartist="$(echo "$albumdata" | jq -r ".artist.name")"
+		sanatizedalbumartist="$(echo "$albumartist" | sed -e "s%[^A-Za-z0-9._()'\ -]%%g" -e "s/  */ /g")"
 		if [ "$albumartistid" != "$artistid" ]; then
 			ArtistInfo "$albumartistid"
 		fi
 		artistfancount=$(cat "/config/cache/artists/$albumartistid/$albumartistid-info.json" | jq -r ".nb_fan")
-		artistimage="/config/cache/artists/$albumartistid/folder.jpg"
-		if [ -d "$artistimage" ]; then
-			blankartistmd5="ec1853a066b6f5f94b55a14fb9e34c97"
-			md5="$(md5sum "$artistimage")"
-			md5clean="$(echo "$md5" | cut -f1 -d " ")"
-			if [ "$md5clean" == "$blankartistmd5" ]; then
-				blankartistimage="true"
-			else
-				blankartistimage="false"
-			fi
+		if [ $albumartistid == 5080 ]; then
+			artistfolder="/downloads-ama/$sanatizedalbumartist"
 		else
-			blankartistimage="true"
+			artistfolder="/downloads-ama/$sanatizedalbumartist ($albumartistid)"
+		fi
+		if [ ! -f "$artistfolder/folder.jpg" ]; then
+			artistimage="/config/cache/artists/$albumartistid/folder.jpg"
+			if [ -d "$artistimage" ]; then
+				blankartistmd5="ec1853a066b6f5f94b55a14fb9e34c97"
+				md5="$(md5sum "$artistimage")"
+				md5clean="$(echo "$md5" | cut -f1 -d " ")"
+				if [ "$md5clean" == "$blankartistmd5" ]; then
+					blankartistimage="true"
+				else
+					blankartistimage="false"
+				fi
+			else
+				blankartistimage="true"
+			fi
 		fi
 		
 		if [ $artistid != $albumartistid ]; then
@@ -406,7 +414,6 @@ ProcessArtist () {
 		fi
 		albumtitle="$(echo "$albumdata" | jq -r ".title")"
 		sanatizedalbumtitle="$(echo "$albumtitle" | sed -e "s%[^A-Za-z0-9._()'\ -]%%g" -e "s/  */ /g")"
-		sanatizedalbumartist="$(echo "$albumartist" | sed -e "s%[^A-Za-z0-9._()'\ -]%%g" -e "s/  */ /g")"
 		albumdate="$(echo "$albumdata" | jq -r ".release_date")"
 		albumtype="$(echo "$albumdata" | jq -r ".record_type")"
 		albumexplicit="$(echo "$albumdata" | jq -r ".explicit_lyrics")"
@@ -417,11 +424,6 @@ ProcessArtist () {
 			lyrictype="CLEAN"
 		fi
 		albumyear="${albumdate:0:4}"
-		if [ $albumartistid == 5080 ]; then
-			artistfolder="/downloads-ama/$sanatizedalbumartist"
-		else
-			artistfolder="/downloads-ama/$sanatizedalbumartist ($albumartistid)"
-		fi
 		albumfolder="$sanatizedalbumartist - ${albumtype^^} - $albumyear - $sanatizedalbumtitle ($lyrictype) ($albumid)"
 		logheader="$logheader :: $albumprocess of $albumcount :: PROCESSING :: $albumartist :: ${albumtype^^} :: $albumyear :: $lyrictype :: $albumtitle"
 		echo "$logheader"
