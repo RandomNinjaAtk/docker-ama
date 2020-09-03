@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.1"
+	echo "############################################ SCRIPT VERSION 1.1.2"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -626,7 +626,10 @@ ArtistAlbumList () {
 		else
 			updateartistcache=false
 		fi
+	else
+		updateartistcache=true
 	fi
+	
 	if [ $updateartistcache == true ]; then
 		if [ ! -d "/config/temp" ]; then
 			mkdir "/config/temp"
