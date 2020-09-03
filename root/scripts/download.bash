@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.8"
+	echo "############################################ SCRIPT VERSION 1.1.9"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -401,6 +401,14 @@ ProcessArtist () {
 		logheader="$logheader :: $albumprocess of $albumcount :: PROCESSING :: $albumartist :: ${albumtype^^} :: $albumyear :: $lyrictype :: $albumtitle"
 		echo "$logheader"
 
+		AlbumFilter
+		
+		if [ $filtermatch == true ]; then
+			echo "$logheader :: Album Type matched unwanted filter "$filtertype", skipping..."
+			logheader="$logheaderstart"
+			continue
+		fi
+
 		if find /config/ignore -type f -iname "$albumartistid" | read; then
 			echo "$logheader :: Ignored Artist found, skipping..."
 			logheader="$logheaderstart"
@@ -500,6 +508,24 @@ ProcessArtist () {
 		fi
 		logheader="$logheaderstart"
 	done
+}
+
+AlbumFilter () {
+
+	IFS=', ' read -r -a filters <<< "$ALBUM_TYPE_FILTER"
+	for filter in "${filters[@]}"
+	do
+		if [ "$filter" == "${albumtype^^}" ]; then
+			filtermatch=true
+			filtertype="$filter"
+			break
+		else
+			filtermatch=false
+			filtertype=""
+			continue
+		fi
+	done
+
 }
 
 Conversion () {
