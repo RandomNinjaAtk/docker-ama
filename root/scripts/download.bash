@@ -11,9 +11,9 @@ Configuration () {
 	echo "kill -9 $processdownloadid"
 	echo ""
 	echo ""
-	sleep 2.
+	sleep 2
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.14"
+	echo "############################################ SCRIPT VERSION 1.1.15"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -304,7 +304,6 @@ ArtistInfo () {
 		fi
 	fi
 
-
 	if [ ! -f /config/cache/artists/$1/$1-info.json ]; then
 		if curl -sL --fail "https://api.deezer.com/artist/$1" -o /config/cache/$1-info.json; then
 			if [ ! -d /config/cache/artists/$1 ]; then
@@ -312,7 +311,7 @@ ArtistInfo () {
 			fi
 			mv /config/cache/$1-info.json /config/cache/artists/$1/$1-info.json
 		else
-			echo "$logheader :: Error getting artist information"
+			echo "$logheader :: ERROR :: getting artist information"
 		fi
 	fi
 	
@@ -325,23 +324,13 @@ ArtistInfo () {
 			mv  /config/cache/$1-related.json /config/cache/artists/$1/$1-related.json
 			rm /config/cache/$1-temp-related.json
 		else
-			echo "$logheader:: AUDIO CACHE :: ERROR: Cannot communicate with Deezer"
+			echo "$logheader :: ERROR :: getting artist related information"
 		fi
 	fi
-	
-	artistfancount=$(cat "/config/cache/artists/$1/$1-info.json" | jq -r ".nb_fan")
-	artistpictureurl=$(cat "/config/cache/artists/$1/$1-info.json" | jq -r ".picture_xl" | sed 's%1000x1000%1800x1800%g' | sed 's%80-0-0.jpg%100-0-0.jpg%g')
-	blankartistmd5="ec1853a066b6f5f94b55a14fb9e34c97"
+
 	if [ ! -f /config/cache/artists/$1/folder.jpg ]; then
+		artistpictureurl=$(cat "/config/cache/artists/$1/$1-info.json" | jq -r ".picture_xl" | sed 's%1000x1000%1800x1800%g' | sed 's%80-0-0.jpg%100-0-0.jpg%g')
 		curl -s "$artistpictureurl" -o /config/cache/artists/$1/folder.jpg
-	fi
-	file=/config/cache/artists/$1/folder.jpg
-	md5="$(md5sum "$file")"
-	md5clean="$(echo "$md5" | cut -f1 -d " ")"
-	if [ "$md5clean" == "$blankartistmd5" ]; then
-		blankartistimage="true"
-	else
-		blankartistimage="false"
 	fi
 }
 
@@ -382,6 +371,21 @@ ProcessArtist () {
 		if [ "$albumartistid" != "$artistid" ]; then
 			ArtistInfo "$albumartistid"
 		fi
+		artistfancount=$(cat "/config/cache/artists/$albumartistid/$albumartistid-info.json" | jq -r ".nb_fan")
+		artistimage="/config/cache/artists/$albumartistid/folder.jpg"
+		if [ -d "$artistimage" ]; then
+			blankartistmd5="ec1853a066b6f5f94b55a14fb9e34c97"
+			md5="$(md5sum "$artistimage")"
+			md5clean="$(echo "$md5" | cut -f1 -d " ")"
+			if [ "$md5clean" == "$blankartistmd5" ]; then
+				blankartistimage="true"
+			else
+				blankartistimage="false"
+			fi
+		else
+			blankartistimage="true"
+		fi
+		
 		if [ $artistid != $albumartistid ]; then
 			if [ $albumartistid != 5080 ]; then
 				if [ $artistfancount -lt $FAN_COUNT ]; then
