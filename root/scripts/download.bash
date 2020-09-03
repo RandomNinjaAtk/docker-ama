@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.11"
+	echo "############################################ SCRIPT VERSION 1.1.12"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -70,6 +70,7 @@ Configuration () {
 		echo "$TITLESHORT: Album Type Filter: ENABLED"
 		echo "$TITLESHORT: Filtering: $ALBUM_TYPE_FILTER"		
 	else
+		ALBUM_FILTER=false
 		echo "$TITLESHORT: Album Type Filter: DISABLED"
 	fi
 	
@@ -597,18 +598,16 @@ ProcessArtistRelated () {
 	else
 		relatedprocesslist=($(ls /config/list -I "*-related" | cut -f2 -d "/" | cut -f1 -d "-" | sort -u))
 	fi
+	echo "RELATED"
 	for id in ${!relatedprocesslist[@]}; do
 		artistnumber=$(( $id + 1 ))
 		artistid="${relatedprocesslist[$id]}"
-		DeezerArtistID="$artistid"
-		if [ -f  /config/cache/artists/$1/$1-related.json ]; then
-			artistrelatedfile=$(cat  /config/cache/artists/$1/$1-related.json)
+		if [ -f  /config/cache/artists/$artistid/$artistid-related.json ]; then
+			artistrelatedfile=$(cat  /config/cache/artists/$artistid/$artistid-related.json)
 			artistrelatedcount="$(echo "$artistrelatedfile" | jq -r ".total")"
 			if [ "$artistrelatedcount" -gt "0" ]; then
-				echo  "Processing Artist ID: ${DeezerArtistID} :: $artistrelatedcount Related artists..."
 				artistrelatedidlist=($(echo "$artistrelatedfile" | jq ".data[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT))
 				artistrelatedidlistcount=$(echo "$artistrelatedfile" | jq ".data[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT | wc -l)
-				echo  "Processing Artist ID: ${DeezerArtistID} :: $artistrelatedidlistcount Related artists matching minimum fancount of $FAN_COUNT"
 				for id in ${!artistrelatedidlist[@]}; do
 					relatedartistnumber=$(( $id + 1 ))
 					artistrelatedid="${artistrelatedidlist[$id]}"
@@ -775,14 +774,14 @@ Main () {
 	if ls /config/list | read; then
 		if ls /config/list -I "*-related" -I "*-lidarr" -I "*-complete" | read; then
 			listcount="$(ls /config/list -I "*-related" -I "*-lidarr" -I "*-complete" | wc -l)"
-			listregtext="$listcount Artists (Not realted/imported)"
+			listregtext="$listcount Artists (Not related/imported)"
 		else
-			listregtext="0 Artists (Not realted/imported)"
+			listregtext="0 Artists (Not related/imported)"
 		fi
 
 		if ls /config/list/*-related 2> /dev/null | read; then
 			listrelatedcount="$(ls /config/list | grep "related" | cut -f1 -d "-" | sort -u | wc -l)"
-			relatedtext="$listrelatedcount Related Artists"
+			relatedtext="$listrelatedcount Related Artists (Minimum Fan Count: $FAN_COUNT)"
 			if [ "$RELATED_ARTIST" = "true" ]; then
 				relatedoption=""
 			else
