@@ -56,10 +56,92 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-e LIDARR_API_KEY=08d108d108d108d108d108d108d108d1` | ONLY used if Lidarr List Import is enabled... |
 | `-e NOTIFYPLEX=true` | true = enabled :: Plex must have a library added and be configured to use the exact same mount point (/downloads-ama) |
 | `-e PLEXLIBRARYNAME=Music` | This must exactly match the name of the Plex Library that contains the Lidarr Media Folder data |
-| `-e PLEXURL=http://127.0.0.1:32400` | ONLY used if NOTIFYPLEX is enabled... |
+| `-e PLEXURL=http://x.x.x.x:32400` | ONLY used if NOTIFYPLEX is enabled... |
 | `-e PLEXTOKEN=plextoken` | ONLY used if NOTIFYPLEX is enabled... |
 
+## Usage
 
+Here are some example snippets to help you get started creating a container.
+
+### docker
+
+```
+docker create \
+  --name=ama \
+  -v /path/to/config/files:/config \
+  -v /path/to/downloads:/downloads-ama \
+  -e PUID=1000 \
+  -e PGID=1000 \
+  -e AUTOSTART=true \
+  -e SCRIPTINTERVAL=1h \
+  -e MODE=artist \
+  -e RELATED_ARTIST=false \
+  -e RELATED_ARTIST_RELATED=false \
+  -e RELATED_COUNT=20 \
+  -e FAN_COUNT=1000000 \
+  -e CONCURRENT_DOWNLOADS=1 \
+  -e FORMAT=FLAC \
+  -e BITRATE=320 \
+  -e REQUIRE_QUALITY=false \
+  -e REPLAYGAIN=true \
+  -e IGNORE_ARTIST_WITHOUT_IMAGE=false \
+  -e COMPLETE_MY_ARTISTS=false \
+  -e FILE_PERMISIONS=644 \
+  -e FOLDER_PERMISIONS=755 \
+  -e LIDARR_LIST_IMPORT=false
+  -e LIDARR_URL=http://x.x.x.x:8686 \
+  -e LIDARR_API_KEY=LIDARRAPI \
+  -e ARL_TOKEN=ARLTOKEN	\
+  -e NOTIFYPLEX=false \
+  -e PLEXLIBRARYNAME=Music \
+  -e PLEXURL=http://x.x.x.x:8686 \
+  -e PLEXTOKEN=plextoken \
+  --restart unless-stopped \
+  randomninjaatk/ama 
+```
+
+### docker-compose
+
+Compatible with docker-compose v2 schemas.
+
+```
+version: "2.1"
+services:
+  amd:
+    image: randomninjaatk/ama 
+    container_name: ama
+    volumes:
+      - /path/to/config/files:/config
+      - /path/to/downloads:/downloads-ama
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - AUTOSTART=true
+      - SCRIPTINTERVAL=1h
+      - MODE=artist
+      - RELATED_ARTIST=false
+      - RELATED_ARTIST_RELATED=false
+      - RELATED_COUNT=20
+      - FAN_COUNT=1000000
+      - CONCURRENT_DOWNLOADS=1
+      - FORMAT=FLAC
+      - BITRATE=320
+      - REQUIRE_QUALITY=false
+      - IGNORE_ARTIST_WITHOUT_IMAGE=false
+      - COMPLETE_MY_ARTISTS=false
+      - REPLAYGAIN=true
+      - FOLDER_PERMISIONS=755
+      - FILE_PERMISIONS=644
+      - LIDARR_LIST_IMPORT=false
+      - LIDARR_URL=http://x.x.x.x:8686
+      - LIDARR_API_KEY=LIDARRAPI
+      - ARL_TOKEN=ARLTOKEN
+      - NOTIFYPLEX=false
+      - PLEXLIBRARYNAME=Music
+      - PLEXURL=http://x.x.x.x:8686
+      - PLEXTOKEN=plextoken
+    restart: unless-stopped
+```
 
 # Script Information
 * Script will automatically run when enabled, if disabled, you will need to manually execute with the following command:
