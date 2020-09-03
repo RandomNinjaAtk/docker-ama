@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.3"
+	echo "############################################ SCRIPT VERSION 1.1.4"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -744,7 +744,7 @@ Main () {
 		if ls /config/list/*-lidarr 2> /dev/null | read; then
 			listlidarrcount="$(ls /config/list | grep "lidarr" | cut -f1 -d "-" | sort -u | wc -l)"
 			lidarrtext="$listlidarrcount Lidarr Artists"
-			if [ "$LidarrListImport" = "true" ]; then
+			if [ "$LIDARR_LIST_IMPORT" = "true" ]; then
 				lidarroption=""
 			else
 				lidarroption=" -not -iname *-lidarr"
