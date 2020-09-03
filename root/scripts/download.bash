@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.17"
+	echo "############################################ SCRIPT VERSION 1.1.18"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -104,6 +104,12 @@ Configuration () {
 		echo "$TITLESHORT: Related Artist Related (loop): ENABLED"
 	else
 		echo "$TITLESHORT: Related Artist Related (loop): DISABLED"
+	fi
+	
+	if [ "$COMPLETE_MY_ARTISTS" = "true" ]; then
+		echo "$TITLESHORT: Complete My Artists: ENABLED"
+	else
+		echo "$TITLESHORT: Complete My Artists: DISABLED"
 	fi
 
 	if [ -z "$IGNORE_ARTIST_WITHOUT_IMAGE" ]; then
@@ -294,14 +300,21 @@ LidarrListImport () {
 }
 
 ArtistInfo () {
+	
 	if [ -f /config/cache/artists/$1/$1-info.json ]; then
-		updatedartistdata=$(curl -sL --fail "https://api.deezer.com/artist/$1")
-		newalbumcount=$(echo "$updatedartistdata" | jq -r ".nb_album")
-		existingalbumcount=$(cat /config/cache/artists/$1/$1-info.json | jq -r ".nb_album")
-		if [ $newalbumcount != $existingalbumcount ]; then
-			rm /config/cache/artists/$1/$1-info.json
-			echo "$updatedartistdata" > /config/cache/artists/$1/$1-info.json
+		touch -d "168 hours ago" /config/cache/cache-info-check
+		if find /config/cache/artists/$1 -type f -iname "$1-info.json" -not -newer "/config/cache/cache-info-check" | read; then
+			updatedartistdata=$(curl -sL --fail "https://api.deezer.com/artist/$1")
+			newalbumcount=$(echo "$updatedartistdata" | jq -r ".nb_album")
+			existingalbumcount=$(cat /config/cache/artists/$1/$1-info.json | jq -r ".nb_album")
+			if [ $newalbumcount != $existingalbumcount ]; then
+				rm /config/cache/artists/$1/$1-info.json
+				echo "$updatedartistdata" > /config/cache/artists/$1/$1-info.json
+			fi
+		else
+			touch /config/cache/artists/$1/$1-info.json
 		fi
+		rm /config/cache/cache-info-check
 	fi
 
 	if [ ! -f /config/cache/artists/$1/$1-info.json ]; then
@@ -313,6 +326,12 @@ ArtistInfo () {
 		else
 			echo "$logheader :: ERROR :: getting artist information"
 		fi
+	fi
+	
+	if [ -f /config/cache/artists/$1/$1-related.json ]; then
+		touch -d "730 hours ago" /config/cache/cache-related-check
+		find /config/cache/artists/$1 -type f -iname "$1-related.json" -not -newer "/config/cache/cache-related-check" -delete
+		rm /config/cache/cache-related-check
 	fi
 	
 	if ! [ -f /config/cache/artists/$1/$1-related.json ]; then
