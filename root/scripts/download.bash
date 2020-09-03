@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.6"
+	echo "############################################ SCRIPT VERSION 1.1.7"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -443,8 +443,8 @@ ProcessArtist () {
 		logheader="$logheader :: DOWNLOAD"
 		echo "$logheader :: Sending \"$deezeralbumurl\" to download client..."
 
-		if [ ! -d "/downloads-ama/temp" ]; then
-			mkdir -p "/downloads-ama/temp"
+		if [ ! -d /downloads-ama/temp ]; then
+			mkdir -p /downloads-ama/temp
 		else
 			rm -rf /downloads-ama/temp/*
 		fi
@@ -496,6 +496,9 @@ ProcessArtist () {
 			fi
 		fi
 		PlexNotification "$artistfolder/$albumfolder"
+		if [ -d /downloads-ama/temp ]; then
+			rm -rf /downloads-ama/temp
+		fi
 		logheader="$logheaderstart"
 	done
 }
