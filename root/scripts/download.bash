@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.4"
+	echo "############################################ SCRIPT VERSION 1.1.5"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -756,7 +756,7 @@ Main () {
 		if ls /config/list/*-complete 2> /dev/null | read; then
 			listcompletecount="$(ls /config/list | grep "complete" | cut -f1 -d "-" | sort -u | wc -l)"
 			completetext="$listcompletecount Complete Artists"
-			if [ "$CompleteMyArtists" = "true" ]; then
+			if [ "$COMPLETE_MY_ARTISTS" = "true" ]; then
 				completeoption=""
 			else
 				completeoption=" -not -iname *-complete"
