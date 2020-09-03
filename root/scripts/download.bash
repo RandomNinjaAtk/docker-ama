@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.13"
+	echo "############################################ SCRIPT VERSION 1.1.14"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -758,17 +758,30 @@ ArtistDiscographyAlbumList () {
 Main () {
 	Configuration
 	echo "############################################ SCRIPT START"
-	if [ "$LIDARR_LIST_IMPORT" = "true" ] || [ "$COMPLETE_MY_ARTISTS" = "true" ] || [ "$RELATED_ARTIST" = "true" ]; then
-		if [ "$LIDARR_LIST_IMPORT" = "true" ]; then
+	if [ "$LIDARR_LIST_IMPORT" == "true" ] || [ "$COMPLETE_MY_ARTISTS" == "true" ] || [ "$RELATED_ARTIST" == "true" ]; then
+		if [ "$LIDARR_LIST_IMPORT" == "true" ]; then
 			LidarrListImport
 		fi
-		if [ "$COMPLETE_MY_ARTISTS" = "true" ]; then
+		if [ "$COMPLETE_MY_ARTISTS" == "true" ]; then
 			AddMissingArtists
 		fi
-		if  [ "$RELATED_ARTIST" = "true" ]; then
+		if  [ "$RELATED_ARTIST" == "true" ]; then
 			ProcessArtistRelated
 		fi
 	fi
+	
+	if [ "$LIDARR_LIST_IMPORT" != "true" ]; then
+		find /config/list -iname "*-lidarr" -delete
+	fi
+	
+	if [ "$COMPLETE_MY_ARTISTS" != "true" ]; then
+		find /config/list -iname "*-complete" -delete
+	fi
+	
+	if  [ "$RELATED_ARTIST" != "true" ]; then
+		find /config/list -iname "*-related" -delete
+	fi
+	
 	if ls /config/list | read; then
 		if ls /config/list -I "*-related" -I "*-lidarr" -I "*-complete" | read; then
 			listcount="$(ls /config/list -I "*-related" -I "*-lidarr" -I "*-complete" | wc -l)"
