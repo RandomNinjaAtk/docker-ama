@@ -35,25 +35,26 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-v /config` | Configuration files for AMA |
 | `-v /downloads-ama` | Downloaded library location |
 | `-e AUTOSTART=true` | true = Enabled :: Runs script automatically on startup |
-| `-e mode=artist` | artist or discography :: artist mode downloads all albums listed as that artist, discography downloads all albums listed as that artist and featured in albums |
+| `-e MODE=artist` | artist or discography :: artist mode downloads all albums listed as that artist, discography downloads all albums listed as that artist and featured in albums |
 | `-e RELATED_ARTIST=false` | true = enabled :: Enabling this lets the script crawl your artist list for related artists and process them |
 | `-e RELATED_ARTIST_RELATED=false` | true = enabled :: Enabling this lets the script crawl your related artists for additional related artists and process them accordingly :: WARNING this will cause an endless loop (spider crawling) until no more are found... |
-| `-e relatedcount=20` | Maximum number of related artists to import per artist (20 is max) |
-| `-e fancount=1000000` | Minimum number of fans required for processing |
-| `-e NumberConcurrentProcess=1` | Number of concurrent processes, controls download concurrency and encoding/tagging concurrency |
-| `-e Format=FLAC` | SET TO: ALAC or FLAC or AAC or MP3 or OPUS |
-| `-e ConversionBitrate=320` | FLAC -> OPUS/AAC/MP3 will be converted using this bitrate |
-| `-e replaygain=true` | true = enabled :: Scans and analyzes files to add replaygain tags to song metadata |
-| `-e RemoveArtistWithoutImage=false` | true = enabled :: Enabling this will cleanup and remove artist folders that don't contain a unique artist image |
-| `-e RemoveDuplicates=true` | true = enabled :: Eanabling this will attempt to remove duplicate clean and duplicate non-deluxe-clean versions of albums/singles/ep" |
-| `-e CompleteMyArtists=false` | true = enabled :: Eanabling this will add artist id's found in the library directory that are currently not in your list. This will then allow the script archive them accordingly :: !!!WARNING!!! Could cause an endless loop! |
-| `-e FilePermissions=666` | Based on chmod linux permissions |
-| `-e FolderPermissions=777` | Based on chmod linux permissions |
+| `-e RELATED_COUNT=20` | Maximum number of related artists to import per artist (20 is max) |
+| `-e FAN_COUNT=1000000` | Minimum number of fans required for processing |
+| `-e CONCURRENT_DOWNLOADS=1` | Controls download concurrency |
+| `-e FORMAT=FLAC` | SET TO: ALAC or FLAC or AAC or MP3 or OPUS |
+| `-e BITRATE=320` | FLAC -> OPUS/AAC/MP3 will be converted using this bitrate |
+| `-e REQUIRE_QUALITY=false` | true = enabled :: Requires all downloaded files match target file extension (mp3 or flac) when enabled |
+| `-e REPLAYGAIN=true` | true = enabled :: Scans and analyzes files to add replaygain tags to song metadata |
+| `-e IGNORE_ARTIST_WITHOUT_IMAGE=false` | true = enabled :: Enabling this will prevent downloading albums from artists with default image (non-unique) |
+| `-e COMPLETE_MY_ARTISTS=false` | true = enabled :: Eanabling this will add artist id's found in the library directory that are currently not in your list. This will then allow the script archive them accordingly :: !!!WARNING!!! Could cause an endless loop! |
+| `-e FILE_PERMISIONS=644` | Based on chmod linux permissions |
+| `-e FOLDER_PERMISIONS=755` | Based on chmod linux permissions |
 | `-e ARL_TOKEN=ARLTOKEN` | User token for dl client, for instructions to obtain token: https://notabug.org/RemixDevs/DeezloaderRemix/wiki/Login+via+userToken |
-| `-e LidarrListImport=true` | true = enabled :: imports artist list from lidarr |
-| `-e LidarrUrl=http://127.0.0.1:8686` | ONLY used if Lidarr List Import is enabled... |
-| `-e LidarrAPIkey=08d108d108d108d108d108d108d108d1` | ONLY used if Lidarr List Import is enabled... |
+| `-e LIDARR_LIST_IMPORT=true` | true = enabled :: imports artist list from lidarr |
+| `-e LIDARR_URL=http://x.x.x.x:8686` | ONLY used if Lidarr List Import is enabled... |
+| `-e LIDARR_API_KEY=08d108d108d108d108d108d108d108d1` | ONLY used if Lidarr List Import is enabled... |
 | `-e NOTIFYPLEX=true` | true = enabled :: Plex must have a library added and be configured to use the exact same mount point (/downloads-ama) |
+| `-e PLEXLIBRARYNAME=Music` | This must exactly match the name of the Plex Library that contains the Lidarr Media Folder data |
 | `-e PLEXURL=http://127.0.0.1:32400` | ONLY used if NOTIFYPLEX is enabled... |
 | `-e PLEXTOKEN=plextoken` | ONLY used if NOTIFYPLEX is enabled... |
 
