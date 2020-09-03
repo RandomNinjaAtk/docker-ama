@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.10"
+	echo "############################################ SCRIPT VERSION 1.1.11"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -306,7 +306,6 @@ ArtistInfo () {
 
 	if [ ! -f /config/cache/artists/$1/$1-info.json ]; then
 		if curl -sL --fail "https://api.deezer.com/artist/$1" -o /config/cache/$1-info.json; then
-			echo "$logheader :: Downloading artist info..."
 			if [ ! -d /config/cache/artists/$1 ]; then
 				mkdir -p /config/cache/artists/$1
 			fi
@@ -314,9 +313,21 @@ ArtistInfo () {
 		else
 			echo "$logheader :: Error getting artist information"
 		fi
-	else
-		echo "$logheader :: Artist info already cached!"
 	fi
+	
+	if ! [ -f /config/cache/artists/$1/$1-related.json ]; then
+		if curl -sL --fail "https://api.deezer.com/artist/$1/related" -o /config/cache/$1-temp-related.json ; then
+			jq "." /config/cache/$1-temp-related.json > /config/cache/$1-related.json
+			if [ ! -d /config/cache/artists/$1 ]; then
+				mkdir -p /config/cache/artists/$1
+			fi
+			mv  /config/cache/$1-related.json /config/cache/artists/$1/$1-related.json
+			rm /config/cache/$1-temp-related.json
+		else
+			echo "$logheader:: AUDIO CACHE :: ERROR: Cannot communicate with Deezer"
+		fi
+	fi
+	
 	artistfancount=$(cat "/config/cache/artists/$1/$1-info.json" | jq -r ".nb_fan")
 	artistpictureurl=$(cat "/config/cache/artists/$1/$1-info.json" | jq -r ".picture_xl" | sed 's%1000x1000%1800x1800%g' | sed 's%80-0-0.jpg%100-0-0.jpg%g')
 	blankartistmd5="ec1853a066b6f5f94b55a14fb9e34c97"
@@ -590,8 +601,8 @@ ProcessArtistRelated () {
 		artistnumber=$(( $id + 1 ))
 		artistid="${relatedprocesslist[$id]}"
 		DeezerArtistID="$artistid"
-		if [ -f "/config/cache/${DeezerArtistID}-related.json" ]; then
-			artistrelatedfile="$(cat "/config/cache/${DeezerArtistID}-related.json")"
+		if [ -f  /config/cache/artists/$1/$1-related.json ]; then
+			artistrelatedfile=$(cat  /config/cache/artists/$1/$1-related.json)
 			artistrelatedcount="$(echo "$artistrelatedfile" | jq -r ".total")"
 			if [ "$artistrelatedcount" -gt "0" ]; then
 				echo  "Processing Artist ID: ${DeezerArtistID} :: $artistrelatedcount Related artists..."
