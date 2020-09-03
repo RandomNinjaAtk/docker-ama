@@ -44,6 +44,7 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-e CONCURRENT_DOWNLOADS=1` | Controls download concurrency |
 | `-e FORMAT=FLAC` | SET TO: ALAC or FLAC or AAC or MP3 or OPUS |
 | `-e BITRATE=320` | FLAC -> OPUS/AAC/MP3 will be converted using this bitrate |
+| `-e ALBUM_TYPE_FILTER=COMPILE` | Filter Types: COMPILE, SINGLE, ALBUM, EP (this is a ", " separated list of Album Types to skip) |
 | `-e REQUIRE_QUALITY=false` | true = enabled :: Requires all downloaded files match target file extension (mp3 or flac) when enabled |
 | `-e REPLAYGAIN=true` | true = enabled :: Scans and analyzes files to add replaygain tags to song metadata |
 | `-e IGNORE_ARTIST_WITHOUT_IMAGE=false` | true = enabled :: Enabling this will prevent downloading albums from artists with default image (non-unique) |
@@ -82,6 +83,7 @@ docker create \
   -e CONCURRENT_DOWNLOADS=1 \
   -e FORMAT=FLAC \
   -e BITRATE=320 \
+  -e ALBUM_TYPE_FILTER=COMPILE \
   -e REQUIRE_QUALITY=false \
   -e REPLAYGAIN=true \
   -e IGNORE_ARTIST_WITHOUT_IMAGE=false \
@@ -126,6 +128,7 @@ services:
       - CONCURRENT_DOWNLOADS=1
       - FORMAT=FLAC
       - BITRATE=320
+      - ALBUM_TYPE_FILTER=COMPILE
       - REQUIRE_QUALITY=false
       - IGNORE_ARTIST_WITHOUT_IMAGE=false
       - COMPLETE_MY_ARTISTS=false
