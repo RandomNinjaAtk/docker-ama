@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.7"
+	echo "############################################ SCRIPT VERSION 1.1.8"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -302,7 +302,6 @@ ArtistInfo () {
 				mkdir -p /config/cache/artists/$1
 			fi
 			mv /config/cache/$1-info.json /config/cache/artists/$1/$1-info.json
-			touch "/config/cache/$1-cache-check"
 		else
 			echo "$logheader :: Error getting artist information"
 		fi
@@ -671,16 +670,16 @@ ArtistAlbumList () {
 
 ArtistDiscographyAlbumList () {
 
-	if [ $updateartistcache == true ]; then
-		resultscount="$(python3 /config/scripts/artist_discograpy.py "$artistid" | sort -u | wc -l)"
-		albumids=($(python3 /config/scripts/artist_discograpy.py "$artistid" | sort -u))
-		echo "$logheader :: Searching for All Albums...."
-		echo "$logheader :: $resultscount Albums found!"
-
+	albumcount="$(python3 /config/scripts/artist_discograpy.py "$artistid" | sort -u | wc -l)"
+	cachecount=$(ls /config/cache/artists/$artistid/albums/* | wc -l)
+	albumids=($(python3 /config/scripts/artist_discograpy.py "$artistid" | sort -u))
+	echo "$logheader :: Searching for All Albums...."
+	echo "$logheader :: $albumcount Albums found!"
+	
+	if [ $albumcount != $cachecount ]; then
 		if [ ! -d "/config/temp" ]; then
 			mkdir "/config/temp"
 		fi
-
 		for id in ${!albumids[@]}; do
 			currentprocess=$(( $id + 1 ))
 			albumid="${albumids[$id]}"
