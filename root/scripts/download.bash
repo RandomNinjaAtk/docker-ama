@@ -13,7 +13,7 @@ Configuration () {
 	echo ""
 	sleep 2.
 	echo "############################################ $TITLE"
-	echo "############################################ SCRIPT VERSION 1.1.5"
+	echo "############################################ SCRIPT VERSION 1.1.6"
 	echo "############################################ DOCKER VERSION $VERSION"
 	echo "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -40,10 +40,12 @@ Configuration () {
 	if [ ! -z "$MODE" ]; then
 		if [ "$MODE" == "artist" ]; then
 			echo "$TITLESHORT: Download Mode: artist"
-		fi
-
-		if [ "$MODE" == "discography" ]; then
+		elif [ "$MODE" == "discography" ]; then
 			echo "$TITLESHORT: Download Mode: discography"
+		else
+			echo "WARNING: MODE setting invalid, defaulting to: artist"
+			MODE="artist"
+			echo "$TITLESHORT: Download Mode: artist"
 		fi
 	else
 		echo "WARNING: MODE setting invalid, defaulting to: artist"
