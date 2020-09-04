@@ -13,7 +13,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.20"
+	log "############################################ SCRIPT VERSION 1.1.21"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -389,6 +389,11 @@ ProcessArtist () {
 		albumartist="$(echo "$albumdata" | jq -r ".artist.name")"
 		sanatizedalbumartist="$(echo "$albumartist" | sed -e "s%[^A-Za-z0-9._()'\ -]%%g" -e "s/  */ /g")"
 		logheader="$logheader :: $albumprocess of $albumcount :: PROCESSING :: $albumartist"
+		if [ -f /config/logs/downloads/$albumid ]; then
+			log "$logheader :: Album ($albumid) Already Downloaded..."
+			logheader="$logheaderstart"
+			continue
+		fi
 		if [ $albumartistid == 5080 ]; then
 			artistfolder="/downloads-ama/$sanatizedalbumartist"
 		else
@@ -397,6 +402,12 @@ ProcessArtist () {
 		if [ -d "$artistfolder" ]; then
 			if find "$artistfolder" -iname "* ($albumid)" | read; then
 				log "$logheader :: Album ($albumid) Already Downloaded..."
+				if [ ! -d /config/logs/downloads ]; then
+					mkdir -p /config/logs/downloads
+				fi
+				if [ ! -f /config/logs/downloads/$albumid ]; then
+					touch /config/logs/downloads/$albumid
+				fi
 				logheader="$logheaderstart"
 				continue
 			fi
@@ -552,6 +563,12 @@ ProcessArtist () {
 		PlexNotification "$artistfolder/$albumfolder"
 		if [ -d /downloads-ama/temp ]; then
 			rm -rf /downloads-ama/temp
+		fi
+		if [ ! -d /config/logs/downloads ]; then
+			mkdir -p /config/logs/downloads
+		fi
+		if [ ! -f /config/logs/downloads/$albumid ]; then
+			touch /config/logs/downloads/$albumid
 		fi
 		logheader="$logheaderstart"
 	done
