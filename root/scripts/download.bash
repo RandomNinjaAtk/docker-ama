@@ -11,7 +11,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.23"
+	log "############################################ SCRIPT VERSION 1.1.24"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -537,10 +537,7 @@ ProcessArtist () {
 				continue
 			fi
 		fi
-
-		Conversion
-		AddReplaygainTags
-
+		
 		file=$(find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | head -n 1)
 		if [ ! -z "$file" ]; then
 			artwork="$(dirname "$file")/folder.jpg"
@@ -550,6 +547,12 @@ ProcessArtist () {
 				log "$logheader :: ERROR :: No artwork found"
 			fi
 		fi
+		
+		Conversion
+		AddReplaygainTags
+
+		Conversion
+		AddReplaygainTags
 
 		if [ ! -d "$artistfolder/$albumfolder" ]; then
 			mkdir -p "$artistfolder/$albumfolder"
