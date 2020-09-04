@@ -1,5 +1,6 @@
 #!/usr/bin/with-contenv bash
 export XDG_CONFIG_HOME="/config/deemix/xdg"
+MODE=artist
 
 Configuration () {
 	processstartid="$(ps -A -o pid,cmd|grep "start.bash" | grep -v grep | head -n 1 | awk '{print $1}')"
@@ -11,7 +12,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.26"
+	log "############################################ SCRIPT VERSION 1.1.27"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -366,12 +367,12 @@ ProcessArtistList () {
 		if [ "$MODE" == "discography" ]; then
 			ArtistDiscographyAlbumList
 			albumlistdata=$(jq -s '.' /config/cache/artists/$artistid/albums/*-*.json)
-			albumcount="$(echo "$albumlistdata" | jq -r "unique_by(.id) | sort_by(.release_date) | reverse | (sort_by(.explicit_lyrics) | reverse) | .[].id" | wc -l)"
-			albumids=($(echo "$albumlistdata" | jq -r "unique_by(.id) | sort_by(.release_date) | reverse | (sort_by(.explicit_lyrics) | reverse) | .[].id"))
+			albumcount="$(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id" | wc -l)"
+			albumids=($(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id"))
 		else
 			albumlistdata=$(jq -s '.' /config/cache/artists/$artistid/albums/*-official.json)
-			albumcount="$(echo "$albumlistdata" | jq -r "unique_by(.id) | sort_by(.release_date) | reverse | (sort_by(.explicit_lyrics) | reverse) | .[].id" | wc -l)"
-			albumids=($(echo "$albumlistdata" | jq -r "unique_by(.id) | sort_by(.release_date) | reverse | (sort_by(.explicit_lyrics) | reverse) | .[].id"))
+			albumcount="$(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id" | wc -l)"
+			albumids=($(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id"))
 		fi
 		ProcessArtist
 	done
@@ -490,40 +491,55 @@ ProcessArtist () {
 			if [ "${albumtype^^}" != "SINGLE" ]; then
 				if [ "$albumexplicit" == "false" ]; then
 					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (EXPLICIT) *" | read; then
-						log "$logheader :: Duplicate found, skipping..."
-						logheader="$logheaderstart"
-						continue
-					elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (Deluxe* (EXPLICIT) *" | read; then
-						log "$logheader :: Duplicate Deluxe found, skipping..."
-						logheader="$logheaderstart"
-						continue
-					elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (CLEAN) *" | read; then
-						log "$logheader :: Duplicate CLEAN found, skipping..."
-						logheader="$logheaderstart"
-						continue
-					elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (Deluxe* (CLEAN) *" | read; then
-						log "$logheader :: Duplicate CLEAN Deluxe found, skipping..."
+						log "$logheader :: Duplicate EXPLICIT ${albumtype^^} found, skipping..."
 						logheader="$logheaderstart"
 						continue
 					fi
-				elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - $albumyear - $sanatizedalbumtitle (EXPLICIT) *" | read; then
-					log "$logheader :: Duplicate EXPLICIT found, skipping..."
-					logheader="$logheaderstart"
-					continue
-				elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - $albumyear - $sanatizedalbumtitle (Deluxe* (EXPLICIT) *" | read; then
-					log "$logheader :: Duplicate Deluxe found, skipping..."
-					logheader="$logheaderstart"
-					continue
-				elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (CLEAN) *" | read; then
-					log "$logheader :: Duplicate clean found, skipping..."
-					find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (CLEAN) *" -exec rm -rf "{}" \; &> /dev/null
-					PlexNotification "$artistfolder"
+					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (Deluxe*(EXPLICIT) *" | read; then
+						log "$logheader :: Duplicate EXPLICIT ${albumtype^^} Deluxe found, skipping..."
+						logheader="$logheaderstart"
+						continue
+					fi
+					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (CLEAN) *" | read; then
+						log "$logheader :: Duplicate CLEAN ${albumtype^^} found, skipping..."
+						logheader="$logheaderstart"
+						continue
+					fi
+					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (Deluxe*(CLEAN) *" | read; then
+						log "$logheader :: Duplicate CLEAN ${albumtype^^} Deluxe found, skipping..."
+						logheader="$logheaderstart"
+						continue
+					fi
+				fi
+				if [ "$albumexplicit" == "true" ]; then
+					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - $albumyear - $sanatizedalbumtitle (EXPLICIT) *" | read; then
+						log "$logheader :: Duplicate EXPLICIT ${albumtype^^} $albumyear found, skipping..."
+						logheader="$logheaderstart"
+						continue
+					fi
+					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (Deluxe*(EXPLICIT) *" | read; then
+						log "$logheader :: Duplicate EXPLICIT ${albumtype^^} Deluxe found, skipping..."
+						logheader="$logheaderstart"
+						continue
+					fi
+					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (CLEAN) *" | read; then
+						log "$logheader :: Duplicate CLEAN ${albumtype^^} found, skipping..."
+						find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (CLEAN) *" -exec rm -rf "{}" \; &> /dev/null
+						PlexNotification "$artistfolder"
+					fi
 				fi
 			fi
 			if [ "${albumtype^^}" == "SINGLE" ]; then
 				if [ "$albumexplicit" == "false" ]; then
 					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (EXPLICIT) *" | read; then
-						log "$logheader :: Duplicate Explicit Album already downloaded, skipping..."
+						log "$logheader :: Duplicate EXPLICIT SINGLE already downloaded, skipping..."
+						logheader="$logheaderstart"
+						continue
+					fi
+				fi
+				if [ "$albumexplicit" == "true" ]; then
+					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - $albumyear - $sanatizedalbumtitle (EXPLICIT) *" | read; then
+						log "$logheader :: Duplicate EXPLICIT SINGLE already downloaded, skipping..."
 						logheader="$logheaderstart"
 						continue
 					fi
