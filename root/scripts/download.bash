@@ -11,7 +11,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.24"
+	log "############################################ SCRIPT VERSION 1.1.25"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -548,9 +548,6 @@ ProcessArtist () {
 			fi
 		fi
 		
-		Conversion
-		AddReplaygainTags
-
 		Conversion
 		AddReplaygainTags
 
