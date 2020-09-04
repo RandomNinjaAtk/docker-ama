@@ -12,7 +12,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.27"
+	log "############################################ SCRIPT VERSION 1.1.28"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -398,6 +398,18 @@ ProcessArtist () {
 			logheader="$logheaderstart"
 			continue
 		fi
+		if find /config/ignore -type f -iname "$albumartistid" | read; then
+			log "$logheader :: Ignored Artist found, skipping..."
+			logheader="$logheaderstart"
+			continue
+		fi
+		
+		if find /config/ignore -type f -name "$albumartistid" -o -name "$albumartistid-lidarr" -o -name "$albumartistid-related" -o -name "$albumartistid-complete"  | read; then
+			log "$logheader :: Album Artist found in wanted list (/config/list/$albumartistid), $albumartistid will be processed later, skipping..."
+			logheader="$logheaderstart"
+			continue
+		fi
+		
 		if [ $albumartistid == 5080 ]; then
 			artistfolder="/downloads-ama/$sanatizedalbumartist"
 		else
@@ -481,11 +493,6 @@ ProcessArtist () {
 				logheader="$logheaderstart"
 				continue
 			fi
-		fi
-		if find /config/ignore -type f -iname "$albumartistid" | read; then
-			log "$logheader :: Ignored Artist found, skipping..."
-			logheader="$logheaderstart"
-			continue
 		fi
 		if [ -d "$artistfolder" ]; then
 			if [ "${albumtype^^}" != "SINGLE" ]; then
