@@ -1,5 +1,7 @@
 #!/usr/bin/with-contenv bash
 export XDG_CONFIG_HOME="/config/deemix/xdg"
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
 
 Configuration () {
 	processstartid="$(ps -A -o pid,cmd|grep "start.bash" | grep -v grep | head -n 1 | awk '{print $1}')"
@@ -11,7 +13,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.30"
+	log "############################################ SCRIPT VERSION 1.1.31"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -197,17 +199,21 @@ Configuration () {
 
 	if [ ! -z "$FILE_PERMISSIONS" ]; then
 		log "$TITLESHORT: File Permissions: $FILE_PERMISSIONS"
+		FILEPERM=$FILE_PERMISSIONS
 	else
 		log "WARNING: FILE_PERMISSIONS not set, using default..."
-		FILE_PERMISSIONS="644"
+		FILE_PERMISSIONS=644
+		FILEPERM=$FILE_PERMISSIONS
 		log "$TITLESHORT: File Permissions: $FILE_PERMISSIONS"
 	fi
 
 	if [ ! -z "$FOLDER_PERMISSIONS" ]; then
 		log "$TITLESHORT: Folder Permissions: $FOLDER_PERMISSIONS"
+		FOLDERPERM=$FOLDER_PERMISSIONS
 	else
 		log "WARNING: FOLDER_PERMISSIONS not set, using default..."
-		FOLDER_PERMISSIONS="755"
+		FOLDER_PERMISSIONS=755
+		FOLDERPERM=$FOLDER_PERMISSIONS
 		log "$TITLESHORT: Folder Permissions: $FOLDER_PERMISSIONS"
 	fi
 
@@ -385,7 +391,7 @@ ProcessArtist () {
 		albumdata=$(echo "$albumlistdata" | jq -r ".[] | select(.id==$albumid)")
 		albumartistid="$(echo "$albumdata" | jq -r ".artist.id")"
 		albumartist="$(echo "$albumdata" | jq -r ".artist.name")"
-		sanatizedalbumartist="$(echo "$albumartist" | sed -e "s%[^A-Za-z0-9._()'\ -]%%g" -e "s/  */ /g")"
+		sanatizedalbumartist="$(echo "$albumartist" | sed -e "s%[^[:alnum:]\[\]._()'\ -]%%g")"
 		logheader="$logheader :: $albumprocess of $albumcount :: PROCESSING :: $albumartist"
 		if [ -f /config/logs/downloads/$albumid ]; then
 			log "$logheader :: Album ($albumid) Already Downloaded..."
@@ -466,7 +472,7 @@ ProcessArtist () {
 			fi
 		fi
 		albumtitle="$(echo "$albumdata" | jq -r ".title")"
-		sanatizedalbumtitle="$(echo "$albumtitle" | sed -e "s%[^A-Za-z0-9._()'\ -]%%g" -e "s/  */ /g")"
+		sanatizedalbumtitle="$(echo "$albumtitle" | sed -e "s%[^[:alnum:]\[\]._()'\ -]%%g")"
 		albumdate="$(echo "$albumdata" | jq -r ".release_date")"
 		albumtype="$(echo "$albumdata" | jq -r ".record_type")"
 		albumexplicit="$(echo "$albumdata" | jq -r ".explicit_lyrics")"
@@ -557,8 +563,12 @@ ProcessArtist () {
 
 		if [ ! -d /downloads-ama/temp ]; then
 			mkdir -p /downloads-ama/temp
+			chmod $FOLDERPERM /downloads-ama/temp
+			chown -R abc:abc /downloads-ama/temp
 		else
 			rm -rf /downloads-ama/temp/*
+			chmod $FOLDERPERM /downloads-ama/temp
+			chown -R abc:abc /downloads-ama/temp
 		fi
 
 		if python3 /config/scripts/dlclient.py -b $quality "$deezeralbumurl"; then
@@ -567,8 +577,8 @@ ProcessArtist () {
 				DownloadQualityCheck
 			fi
 			if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
-				find /downloads-ama/temp -type d -exec chmod $FOLDER_PERMISSIONS {} \;
-				find /downloads-ama/temp -type f -exec chmod $FILE_PERMISSIONS {} \;
+				find /downloads-ama/temp -type d -exec chmod $FOLDERPERM {} \;
+				find /downloads-ama/temp -type f -exec chmod $FILEPERM {} \;
 				chown -R abc:abc /downloads-ama/temp
 			else
 				log "$logheader :: ERROR :: No files found"
@@ -589,19 +599,25 @@ ProcessArtist () {
 		Conversion
 		AddReplaygainTags
 
+		if [ ! -d "$artistfolder" ]; then
+			mkdir -p "$artistfolder"
+			chmod $FOLDERPERM "$artistfolder"
+			chown -R abc:abc "$artistfolder"
+		fi
 		if [ ! -d "$artistfolder/$albumfolder" ]; then
 			mkdir -p "$artistfolder/$albumfolder"
-			chmod $FOLDER_PERMISSIONS "$artistfolder/$albumfolder"
+			chmod $FOLDERPERM "$artistfolder/$albumfolder"
+			chown -R abc:abc "$artistfolder/$albumfolder"
 		fi
 		mv /downloads-ama/temp/* "$artistfolder/$albumfolder"/
-		chmod $FILE_PERMISSIONS "$artistfolder/$albumfolder"/*
+		chmod $FILEPERM "$artistfolder/$albumfolder"/*
 		chown -R abc:abc "$artistfolder/$albumfolder"
 		if [ -f /config/cache/artists/$albumartistid/folder.jpg ]; then
 			if [ "$blankartistimage" == "false" ]; then
 				if [ ! -f "$artistfolder/folder.jpg" ]; then
 					if [ $albumartistid != 5080 ]; then
 						cp /config/cache/artists/$albumartistid/folder.jpg "$artistfolder/folder.jpg"
-						chmod $FILE_PERMISSIONS "$artistfolder/folder.jpg"
+						chmod $FILEPERM "$artistfolder/folder.jpg"
 						chown -R abc:abc "$artistfolder/folder.jpg"
 					fi
 				fi
