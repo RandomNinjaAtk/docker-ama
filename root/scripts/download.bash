@@ -13,7 +13,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.19"
+	log "############################################ SCRIPT VERSION 1.1.20"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -388,15 +388,23 @@ ProcessArtist () {
 		albumartistid="$(echo "$albumdata" | jq -r ".artist.id")"
 		albumartist="$(echo "$albumdata" | jq -r ".artist.name")"
 		sanatizedalbumartist="$(echo "$albumartist" | sed -e "s%[^A-Za-z0-9._()'\ -]%%g" -e "s/  */ /g")"
-		if [ "$albumartistid" != "$artistid" ]; then
-			ArtistInfo "$albumartistid"
-		fi
-		artistfancount=$(cat "/config/cache/artists/$albumartistid/$albumartistid-info.json" | jq -r ".nb_fan")
+		logheader="$logheader :: $albumprocess of $albumcount :: PROCESSING :: $albumartist"
 		if [ $albumartistid == 5080 ]; then
 			artistfolder="/downloads-ama/$sanatizedalbumartist"
 		else
 			artistfolder="/downloads-ama/$sanatizedalbumartist ($albumartistid)"
 		fi
+		if [ -d "$artistfolder" ]; then
+			if find "$artistfolder" -iname "* ($albumid)" | read; then
+				log "$logheader :: Album ($albumid) Already Downloaded..."
+				logheader="$logheaderstart"
+				continue
+			fi
+		fi
+		if [ "$albumartistid" != "$artistid" ]; then
+			ArtistInfo "$albumartistid"
+		fi
+		artistfancount=$(cat "/config/cache/artists/$albumartistid/$albumartistid-info.json" | jq -r ".nb_fan")
 		if [ ! -f "$artistfolder/folder.jpg" ]; then
 			artistimage="/config/cache/artists/$albumartistid/folder.jpg"
 			if [ -f "$artistimage" ]; then
@@ -436,7 +444,6 @@ ProcessArtist () {
 		albumdate="$(echo "$albumdata" | jq -r ".release_date")"
 		albumtype="$(echo "$albumdata" | jq -r ".record_type")"
 		albumexplicit="$(echo "$albumdata" | jq -r ".explicit_lyrics")"
-
 		if [ "$albumexplicit" == "true" ]; then
 			lyrictype="EXPLICIT"
 		else
@@ -444,9 +451,7 @@ ProcessArtist () {
 		fi
 		albumyear="${albumdate:0:4}"
 		albumfolder="$sanatizedalbumartist - ${albumtype^^} - $albumyear - $sanatizedalbumtitle ($lyrictype) ($albumid)"
-		logheader="$logheader :: $albumprocess of $albumcount :: PROCESSING :: $albumartist :: ${albumtype^^} :: $albumyear :: $lyrictype :: $albumtitle"
-		log "$logheader"
-
+		logheader="$logheader :: ${albumtype^^} :: $albumyear :: $lyrictype :: $albumtitle"
 		if [ $ALBUM_FILTER == true ]; then
 			AlbumFilter
 		
@@ -462,11 +467,6 @@ ProcessArtist () {
 			continue
 		fi
 		if [ -d "$artistfolder" ]; then
-			if find "$artistfolder" -iname "* ($albumid)" | read; then
-				log "$logheader :: Alaready Downloaded..."
-				logheader="$logheaderstart"
-				continue
-			fi
 			if [ "${albumtype^^}" != "SINGLE" ]; then
 				if [ "$albumexplicit" == "false" ]; then
 					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (EXPLICIT) *" | read; then
