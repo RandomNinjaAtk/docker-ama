@@ -11,7 +11,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.25"
+	log "############################################ SCRIPT VERSION 1.1.26"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -490,16 +490,32 @@ ProcessArtist () {
 			if [ "${albumtype^^}" != "SINGLE" ]; then
 				if [ "$albumexplicit" == "false" ]; then
 					if find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (EXPLICIT) *" | read; then
-						log "$logheader :: Duplicate found..."
+						log "$logheader :: Duplicate found, skipping..."
+						logheader="$logheaderstart"
+						continue
+					elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (Deluxe* (EXPLICIT) *" | read; then
+						log "$logheader :: Duplicate Deluxe found, skipping..."
+						logheader="$logheaderstart"
+						continue
+					elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (CLEAN) *" | read; then
+						log "$logheader :: Duplicate CLEAN found, skipping..."
+						logheader="$logheaderstart"
+						continue
+					elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (Deluxe* (CLEAN) *" | read; then
+						log "$logheader :: Duplicate CLEAN Deluxe found, skipping..."
 						logheader="$logheaderstart"
 						continue
 					fi
 				elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - $albumyear - $sanatizedalbumtitle (EXPLICIT) *" | read; then
-					log "$logheader :: Duplicate found..."
+					log "$logheader :: Duplicate EXPLICIT found, skipping..."
+					logheader="$logheaderstart"
+					continue
+				elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - $albumyear - $sanatizedalbumtitle (Deluxe* (EXPLICIT) *" | read; then
+					log "$logheader :: Duplicate Deluxe found, skipping..."
 					logheader="$logheaderstart"
 					continue
 				elif find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (CLEAN) *" | read; then
-					log "$logheader :: Duplicate clean found..."
+					log "$logheader :: Duplicate clean found, skipping..."
 					find "$artistfolder" -iname "$sanatizedalbumartist - ${albumtype^^} - * - $sanatizedalbumtitle (CLEAN) *" -exec rm -rf "{}" \; &> /dev/null
 					PlexNotification "$artistfolder"
 				fi
