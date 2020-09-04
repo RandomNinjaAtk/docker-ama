@@ -1,6 +1,5 @@
 #!/usr/bin/with-contenv bash
 export XDG_CONFIG_HOME="/config/deemix/xdg"
-MODE=artist
 
 Configuration () {
 	processstartid="$(ps -A -o pid,cmd|grep "start.bash" | grep -v grep | head -n 1 | awk '{print $1}')"
@@ -12,7 +11,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.29"
+	log "############################################ SCRIPT VERSION 1.1.30"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
