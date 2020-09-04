@@ -49,8 +49,8 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-e REPLAYGAIN=true` | true = enabled :: Scans and analyzes files to add replaygain tags to song metadata |
 | `-e IGNORE_ARTIST_WITHOUT_IMAGE=false` | true = enabled :: Enabling this will prevent downloading albums from artists with default image (non-unique) |
 | `-e COMPLETE_MY_ARTISTS=false` | true = enabled :: Eanabling this will add artist id's found in the library directory that are currently not in your list. This will then allow the script archive them accordingly :: !!!WARNING!!! Could cause an endless loop! |
-| `-e FILE_PERMISIONS=644` | Based on chmod linux permissions |
-| `-e FOLDER_PERMISIONS=755` | Based on chmod linux permissions |
+| `-e FILE_PERMISSIONS=644` | Based on chmod linux permissions |
+| `-e FOLDER_PERMISSIONS=755` | Based on chmod linux permissions |
 | `-e ARL_TOKEN=ARLTOKEN` | User token for dl client, for instructions to obtain token: https://notabug.org/RemixDevs/DeezloaderRemix/wiki/Login+via+userToken |
 | `-e LIDARR_LIST_IMPORT=true` | true = enabled :: imports artist list from lidarr |
 | `-e LIDARR_URL=http://x.x.x.x:8686` | ONLY used if Lidarr List Import is enabled... |
@@ -88,8 +88,8 @@ docker create \
   -e REPLAYGAIN=true \
   -e IGNORE_ARTIST_WITHOUT_IMAGE=false \
   -e COMPLETE_MY_ARTISTS=false \
-  -e FILE_PERMISIONS=644 \
-  -e FOLDER_PERMISIONS=755 \
+  -e FILE_PERMISSIONS=644 \
+  -e FOLDER_PERMISSIONS=755 \
   -e LIDARR_LIST_IMPORT=false
   -e LIDARR_URL=http://x.x.x.x:8686 \
   -e LIDARR_API_KEY=LIDARRAPI \
@@ -133,8 +133,8 @@ services:
       - IGNORE_ARTIST_WITHOUT_IMAGE=false
       - COMPLETE_MY_ARTISTS=false
       - REPLAYGAIN=true
-      - FOLDER_PERMISIONS=755
-      - FILE_PERMISIONS=644
+      - FOLDER_PERMISSIONS=755
+      - FILE_PERMISSIONS=644
       - LIDARR_LIST_IMPORT=false
       - LIDARR_URL=http://x.x.x.x:8686
       - LIDARR_API_KEY=LIDARRAPI
