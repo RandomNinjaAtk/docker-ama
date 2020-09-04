@@ -12,7 +12,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.28"
+	log "############################################ SCRIPT VERSION 1.1.29"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -196,20 +196,20 @@ Configuration () {
 		REPLAYGAIN="false"
 	fi
 
-	if [ ! -z "$FILE_PERMISIONS" ]; then
-		log "$TITLESHORT: File Permissions: $FILE_PERMISIONS"
+	if [ ! -z "$FILE_PERMISSIONS" ]; then
+		log "$TITLESHORT: File Permissions: $FILE_PERMISSIONS"
 	else
-		log "WARNING: FILE_PERMISIONS not set, using default..."
-		FILE_PERMISIONS="644"
-		log "$TITLESHORT: File Permissions: $FILE_PERMISIONS"
+		log "WARNING: FILE_PERMISSIONS not set, using default..."
+		FILE_PERMISSIONS="644"
+		log "$TITLESHORT: File Permissions: $FILE_PERMISSIONS"
 	fi
 
-	if [ ! -z "$FOLDER_PERMISIONS" ]; then
-		log "$TITLESHORT: Folder Permissions: $FOLDER_PERMISIONS"
+	if [ ! -z "$FOLDER_PERMISSIONS" ]; then
+		log "$TITLESHORT: Folder Permissions: $FOLDER_PERMISSIONS"
 	else
-		log "WARNING: FOLDER_PERMISIONS not set, using default..."
-		FOLDER_PERMISIONS="755"
-		log "$TITLESHORT: Folder Permissions: $FOLDER_PERMISIONS"
+		log "WARNING: FOLDER_PERMISSIONS not set, using default..."
+		FOLDER_PERMISSIONS="755"
+		log "$TITLESHORT: Folder Permissions: $FOLDER_PERMISSIONS"
 	fi
 
 	if [ "$LIDARR_LIST_IMPORT" = "true" ]; then
@@ -568,8 +568,8 @@ ProcessArtist () {
 				DownloadQualityCheck
 			fi
 			if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
-				find /downloads-ama/temp -type d -exec chmod $FOLDER_PERMISIONS {} \;
-				find /downloads-ama/temp -type f -exec chmod $FILE_PERMISIONS {} \;
+				find /downloads-ama/temp -type d -exec chmod $FOLDER_PERMISSIONS {} \;
+				find /downloads-ama/temp -type f -exec chmod $FILE_PERMISSIONS {} \;
 				chown -R abc:abc /downloads-ama/temp
 			else
 				log "$logheader :: ERROR :: No files found"
@@ -592,17 +592,17 @@ ProcessArtist () {
 
 		if [ ! -d "$artistfolder/$albumfolder" ]; then
 			mkdir -p "$artistfolder/$albumfolder"
-			chmod $FOLDER_PERMISIONS "$artistfolder/$albumfolder"
+			chmod $FOLDER_PERMISSIONS "$artistfolder/$albumfolder"
 		fi
 		mv /downloads-ama/temp/* "$artistfolder/$albumfolder"/
-		chmod $FILE_PERMISIONS "$artistfolder/$albumfolder"/*
+		chmod $FILE_PERMISSIONS "$artistfolder/$albumfolder"/*
 		chown -R abc:abc "$artistfolder/$albumfolder"
 		if [ -f /config/cache/artists/$albumartistid/folder.jpg ]; then
 			if [ "$blankartistimage" == "false" ]; then
 				if [ ! -f "$artistfolder/folder.jpg" ]; then
 					if [ $albumartistid != 5080 ]; then
 						cp /config/cache/artists/$albumartistid/folder.jpg "$artistfolder/folder.jpg"
-						chmod $FILE_PERMISIONS "$artistfolder/folder.jpg"
+						chmod $FILE_PERMISSIONS "$artistfolder/folder.jpg"
 						chown -R abc:abc "$artistfolder/folder.jpg"
 					fi
 				fi
