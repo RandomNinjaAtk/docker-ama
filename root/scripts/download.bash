@@ -13,7 +13,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.21"
+	log "############################################ SCRIPT VERSION 1.1.22"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -394,6 +394,11 @@ ProcessArtist () {
 			logheader="$logheaderstart"
 			continue
 		fi
+		if [ -f /config/logs/filtered/$albumid ]; then
+			log "$logheader :: Album ($albumid) Previously skipped because of unwanted Album Type ($ALBUM_TYPE_FILTER)..."
+			logheader="$logheaderstart"
+			continue
+		fi
 		if [ $albumartistid == 5080 ]; then
 			artistfolder="/downloads-ama/$sanatizedalbumartist"
 		else
@@ -468,6 +473,12 @@ ProcessArtist () {
 		
 			if [ $filtermatch == true ]; then
 				log "$logheader :: Album Type matched unwanted filter "$filtertype", skipping..."
+				if [ ! -d /config/logs/filtered ]; then
+					mkdir -p /config/logs/filtered
+				fi
+				if [ ! -f /config/logs/filtered/$albumid ]; then
+					touch /config/logs/filtered/$albumid
+				fi
 				logheader="$logheaderstart"
 				continue
 			fi
