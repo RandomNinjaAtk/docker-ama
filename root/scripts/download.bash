@@ -13,7 +13,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.32"
+	log "############################################ SCRIPT VERSION 1.1.33"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -370,14 +370,11 @@ ProcessArtistList () {
 		log "$logheader :: Processing..."
 		ArtistAlbumList
 		if [ "$MODE" == "discography" ]; then
-			ArtistDiscographyAlbumList
-			albumlistdata=$(jq -s '.' /config/cache/artists/$artistid/albums/*-*.json)
 			albumcount="$(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id" | wc -l)"
 			albumids=($(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id"))
 		else
-			albumlistdata=$(jq -s '.' /config/cache/artists/$artistid/albums/*-official.json)
-			albumcount="$(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id" | wc -l)"
-			albumids=($(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id"))
+			albumcount="$(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[] | select(.artist.id==$artistid) | .id" | wc -l)"
+			albumids=($(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[] | select(.artist.id==$artistid) | .id"))
 		fi
 		ProcessArtist
 	done
@@ -771,56 +768,12 @@ DownloadQualityCheck () {
 
 ArtistAlbumList () {
 
-	albumartistalbumcount=$(cat /config/cache/artists/$artistid/$artistid-info.json | jq -r ".nb_album")
-	if [ -d /config/cache/artists/$artistid/albums ]; then
-		existingalbumartistalbumcount=$(find /config/cache/artists/$artistid/albums -iname "*-official.json" | wc -l)
-		if [ $albumartistalbumcount != $existingalbumartistalbumcount ]; then
-			updateartistcache=true
-		else
-			updateartistcache=false
-		fi
-	else
-		updateartistcache=true
-	fi
-	
-	if [ $updateartistcache == true ]; then
-		if [ ! -d "/config/temp" ]; then
-			mkdir "/config/temp"
-		fi
-
-		log "$logheader :: Downloading Official Album List..."
-		albumlist="$(curl -s "https://api.deezer.com/artist/$artistid/albums&limit=1000" | jq ".data")"
-		albumcount="$(echo "$albumlist" | jq -r  ".[].id" | wc -l)"
-		albumids=($(echo "$albumlist" | jq -r  ".[].id"))
-		for id in ${!albumids[@]}; do
-			albumprocess=$(( $id + 1 ))
-			albumid="${albumids[$id]}"
-			if [ ! -d /config/cache/artists/$artistid/albums ]; then
-				mkdir -p /config/cache/artists/$artistid/albums
-			fi
-			if [ ! -f /config/cache/artists/$artistid/albums/${albumid}-official.json ]; then
-				if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "/config/temp/${albumid}-official.json"; then
-					log "$logheader :: $albumprocess of $albumcount :: Downloading Album info..."
-					mv /config/temp/${albumid}-official.json /config/cache/artists/$artistid/albums/${albumid}-official.json
-				else
-					log "$logheader :: $albumprocess of $albumcount :: Error getting album information"
-				fi
-			fi
-		done
-
-		if [ -d "/config/temp" ]; then
-			rm -rf "/config/temp"
-		fi
-	else
-		albumcount=$(ls /config/cache/artists/$artistid/albums/*-official.json | wc -l)
-	fi
-	log "$logheader :: $albumcount found!"
-}
-
-ArtistDiscographyAlbumList () {
-
 	albumcount="$(python3 /config/scripts/artist_discograpy.py "$artistid" | sort -u | wc -l)"
-	cachecount=$(ls /config/cache/artists/$artistid/albums/* | wc -l)
+	if [ -d /config/cache/artists/$artistid/albums ]; then
+		cachecount=$(ls /config/cache/artists/$artistid/albums/* | wc -l)
+	else
+		cachecount=0
+	fi
 	albumids=($(python3 /config/scripts/artist_discograpy.py "$artistid" | sort -u))
 	log "$logheader :: Searching for All Albums...."
 	log "$logheader :: $albumcount Albums found!"
@@ -832,30 +785,37 @@ ArtistDiscographyAlbumList () {
 		for id in ${!albumids[@]}; do
 			currentprocess=$(( $id + 1 ))
 			albumid="${albumids[$id]}"
-			if [ ! -f /config/cache/artists/$artistid/albums/${albumid}-official.json ]; then
-				if [ ! -f /config/cache/artists/$artistid/albums/${albumid}-discography.json ]; then
-					if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "/config/temp/${albumid}-discography.json"; then
-						log "$logheader :: $currentprocess of $albumcount :: Downloading Album info..."
-						mv /config/temp/${albumid}-discography.json /config/cache/artists/$artistid/albums/${albumid}-discography.json
-					else
-						log "$logheader :: $currentprocess of $albumcount :: Error getting album information"
-					fi
+			if [ ! -d /config/cache/artists/$artistid/albums ]; then
+				mkdir -p /config/cache/artists/$artistid/albums
+				chmod $FOLDERPERM /config/cache/artists/$artistid
+				chmod $FOLDERPERM /config/cache/artists/$artistid/albums
+				chown -R abc:abc /config/cache/artists/$artistid
+			fi
+			if [ ! -f /config/cache/artists/$artistid/albums/${albumid}.json ]; then
+				if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "/config/temp/${albumid}.json"; then
+					log "$logheader :: $currentprocess of $albumcount :: Downloading Album info..."
+					mv /config/temp/${albumid}.json /config/cache/artists/$artistid/albums/${albumid}.json
+					chmod $FILEPERM /config/cache/artists/$artistid/albums/${albumid}.json
 				else
-					log "$logheader :: $currentprocess of $albumcount :: Album info already downloaded"
+					log "$logheader :: $currentprocess of $albumcount :: Error getting album information"
 				fi
 			else
 				log "$logheader :: $currentprocess of $albumcount :: Album info already downloaded"
 			fi
 		done
-
+		chown -R abc:abc /config/cache/artists/$artistid
 		if [ -d "/config/temp" ]; then
 			rm -rf "/config/temp"
 		fi
 
 	else
-		albumcount=$(ls /config/cache/artists/$artistid/albums/*-discography.json | wc -l)
-		log "$logheader :: Finding unique albums"
-		log "$logheader :: $albumcount found!"
+		albumlistdata=$(jq -s '.' /config/cache/artists/$artistid/albums/*.json)
+		artistalbumcount=$(echo "$albumlistdata" | jq -r ".[] | select(.artist.id==$artistid) | .id" | wc -l)
+		artistcontributedalbumcount=$(echo "$albumlistdata" | jq -r ".[] | select(.contributors[].id==$artistid) | .id" | wc -l)
+		artistdiscographyalbumcount=$(echo "$albumlistdata" | jq -r ".[] | select(.artist.id!=$artistid) | .id" | wc -l)
+		
+		log "$logheader :: $artistalbumcount Artist Albums Found (artist)"
+		log "$logheader :: $artistdiscographyalbumcount Additional Artist Albums Found (discography)"
 	fi
 }
 
