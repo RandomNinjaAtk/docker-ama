@@ -13,7 +13,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.33"
+	log "############################################ SCRIPT VERSION 1.1.34"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -369,6 +369,10 @@ ProcessArtistList () {
 		logheaderstart="$logheader"
 		log "$logheader :: Processing..."
 		ArtistAlbumList
+		albumlistdata=$(jq -s '.' /config/cache/artists/$artistid/albums/*.json)
+		artistalbumcount=$(echo "$albumlistdata" | jq -r ".[] | select(.artist.id==$artistid) | .id" | wc -l)
+		artistcontributedalbumcount=$(echo "$albumlistdata" | jq -r ".[] | select(.contributors[].id==$artistid) | .id" | wc -l)
+		artistdiscographyalbumcount=$(echo "$albumlistdata" | jq -r ".[] | select(.artist.id!=$artistid) | .id" | wc -l)
 		if [ "$MODE" == "discography" ]; then
 			albumcount="$(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id" | wc -l)"
 			albumids=($(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[].id"))
@@ -376,6 +380,7 @@ ProcessArtistList () {
 			albumcount="$(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[] | select(.artist.id==$artistid) | .id" | wc -l)"
 			albumids=($(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[] | select(.artist.id==$artistid) | .id"))
 		fi
+		log "$logheader :: Downloading $albumcount Albums"
 		ProcessArtist
 	done
 }
@@ -807,15 +812,6 @@ ArtistAlbumList () {
 		if [ -d "/config/temp" ]; then
 			rm -rf "/config/temp"
 		fi
-
-	else
-		albumlistdata=$(jq -s '.' /config/cache/artists/$artistid/albums/*.json)
-		artistalbumcount=$(echo "$albumlistdata" | jq -r ".[] | select(.artist.id==$artistid) | .id" | wc -l)
-		artistcontributedalbumcount=$(echo "$albumlistdata" | jq -r ".[] | select(.contributors[].id==$artistid) | .id" | wc -l)
-		artistdiscographyalbumcount=$(echo "$albumlistdata" | jq -r ".[] | select(.artist.id!=$artistid) | .id" | wc -l)
-		
-		log "$logheader :: $artistalbumcount Artist Albums Found (artist)"
-		log "$logheader :: $artistdiscographyalbumcount Additional Artist Albums Found (discography)"
 	fi
 }
 
