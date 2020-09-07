@@ -600,6 +600,7 @@ ProcessArtist () {
 		
 		if [ -f /config/list/$albumartistid-lidarr ]; then
 			albumartistmbzid="$(cat /config/list/$albumartistid-lidarr)"
+			musicbrainzartistname=$(curl -s -A "$agent" "${MBRAINZMIRROR}/ws/2/artist/$albumartistmbzid?fmt=json" | jq -r '.name?')
 			TagFix
 		fi
 		
@@ -828,7 +829,7 @@ TagFix () {
 			for fname in /downloads-ama/temp/*.flac; do
 				filename="$(basename "$fname")"
 				metaflac "$fname" --remove-tag=ALBUMARTIST
-				metaflac "$fname" --set-tag=ALBUMARTIST="$albumartist"
+				metaflac "$fname" --set-tag=ALBUMARTIST="$musicbrainzartistname"
 				metaflac "$fname" --set-tag=MUSICBRAINZ_ALBUMARTISTID="$albumartistmbzid"
 				echo "$logheader :: FIXING TAGS :: $filename fixed..."
 			done
@@ -840,7 +841,7 @@ TagFix () {
 		else
 			for fname in /downloads-ama/temp/*.mp3; do
 				filename="$(basename "$fname")"
-				eyeD3 "$fname" -b "$albumartist" &> /dev/null
+				eyeD3 "$fname" -b "$musicbrainzartistname" &> /dev/null
 				eyeD3 "$fname" --user-text-frame="MusicBrainz Album Artist Id:$albumartistmbzid" &> /dev/null
 				echo "$logheader :: FIXING TAGS :: $filename fixed..."
 			done
