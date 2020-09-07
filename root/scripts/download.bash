@@ -2,6 +2,7 @@
 export XDG_CONFIG_HOME="/config/deemix/xdg"
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
+agent="automated-music-archiver ( https://github.com/RandomNinjaAtk/docker-ama )"
 
 Configuration () {
 	processstartid="$(ps -A -o pid,cmd|grep "start.bash" | grep -v grep | head -n 1 | awk '{print $1}')"
@@ -13,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.36"
+	log "############################################ SCRIPT VERSION 1.1.37"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -600,7 +601,7 @@ ProcessArtist () {
 		
 		if [ -f /config/list/$albumartistid-lidarr ]; then
 			albumartistmbzid="$(cat /config/list/$albumartistid-lidarr)"
-			musicbrainzartistname=$(curl -s -A "$agent" "${MBRAINZMIRROR}/ws/2/artist/$albumartistmbzid?fmt=json" | jq -r '.name?')
+			musicbrainzartistname=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/$albumartistmbzid?fmt=json" | jq -r '.name?')
 			TagFix
 		fi
 		
