@@ -13,7 +13,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.34"
+	log "############################################ SCRIPT VERSION 1.1.35"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -393,7 +393,7 @@ ProcessArtist () {
 		albumdata=$(echo "$albumlistdata" | jq -r ".[] | select(.id==$albumid)")
 		albumartistid="$(echo "$albumdata" | jq -r ".artist.id")"
 		albumartist="$(echo "$albumdata" | jq -r ".artist.name")"
-		sanatizedalbumartist="$(echo "$albumartist" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g'  -e "s/  */ /g")"
+		sanatizedalbumartist="$(echo "$albumartist" | sed -e "s%[^[:alpha:][:digit:]._()' -]% %g" -e "s/  */ /g")"
 		logheader="$logheader :: $albumprocess of $albumcount :: PROCESSING :: $albumartist"
 		if [ -f /config/logs/downloads/$albumid ]; then
 			log "$logheader :: Album ($albumid) Already Downloaded..."
@@ -474,7 +474,7 @@ ProcessArtist () {
 			fi
 		fi
 		albumtitle="$(echo "$albumdata" | jq -r ".title")"
-		sanatizedalbumtitle="$(echo "$albumtitle" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g'  -e "s/  */ /g")"
+		sanatizedalbumtitle="$(echo "$albumtitle" | sed -e "s%[^[:alpha:][:digit:]._()' -]% %g" -e "s/  */ /g")"
 		albumdate="$(echo "$albumdata" | jq -r ".release_date")"
 		albumtype="$(echo "$albumdata" | jq -r ".record_type")"
 		albumexplicit="$(echo "$albumdata" | jq -r ".explicit_lyrics")"
