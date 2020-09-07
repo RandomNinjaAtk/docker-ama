@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.37"
+	log "############################################ SCRIPT VERSION 1.1.38"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -601,10 +601,14 @@ ProcessArtist () {
 		
 		if [ -f /config/list/$albumartistid-lidarr ]; then
 			albumartistmbzid="$(cat /config/list/$albumartistid-lidarr)"
-			musicbrainzartistname=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/$albumartistmbzid?fmt=json" | jq -r '.name?')
+			musicbrainzartistname=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/$albumartistmbzid?fmt=json" | jq -r '.name')
+			TagFix
+		elif [ $albumartistid == 5080 ]; then
+			albumartistmbzid="89ad4ac3-39f7-470e-963a-56509c546377"
+			musicbrainzartistname=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/$albumartistmbzid?fmt=json" | jq -r '.name')
 			TagFix
 		fi
-		
+				
 		Conversion
 		AddReplaygainTags
 
