@@ -13,7 +13,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.35"
+	log "############################################ SCRIPT VERSION 1.1.36"
 	log "############################################ DOCKER VERSION $VERSION"
 	log "############################################ CONFIGURATION VERIFICATION"
 	error=0
@@ -598,6 +598,11 @@ ProcessArtist () {
 			fi
 		fi
 		
+		if [ -f /config/list/$albumartistid-lidarr ]; then
+			albumartistmbzid="$(cat /config/list/$albumartistid-lidarr)"
+			TagFix
+		fi
+		
 		Conversion
 		AddReplaygainTags
 
@@ -811,6 +816,34 @@ ArtistAlbumList () {
 		chown -R abc:abc /config/cache/artists/$artistid
 		if [ -d "/config/temp" ]; then
 			rm -rf "/config/temp"
+		fi
+	fi
+}
+
+TagFix () {
+	if find /downloads-ama/temp -iname "*.flac" | read; then
+		if ! [ -x "$(command -v metaflac)" ]; then
+			echo "ERROR: FLAC verification utility not installed (ubuntu: apt-get install -y flac)"
+		else
+			for fname in /downloads-ama/temp/*.flac; do
+				filename="$(basename "$fname")"
+				metaflac "$fname" --remove-tag=ALBUMARTIST
+				metaflac "$fname" --set-tag=ALBUMARTIST="$albumartist"
+				metaflac "$fname" --set-tag=MUSICBRAINZ_ALBUMARTISTID="$albumartistmbzid"
+				echo "$logheader :: FIXING TAGS :: $filename fixed..."
+			done
+		fi
+	fi
+	if find /downloads-ama/temp -iname "*.mp3" | read; then
+		if ! [ -x "$(command -v eyeD3)" ]; then
+			echo "eyed3 verification utility not installed (ubuntu: apt-get install -y eyed3)"
+		else
+			for fname in /downloads-ama/temp/*.mp3; do
+				filename="$(basename "$fname")"
+				eyeD3 "$fname" -b "$albumartist" &> /dev/null
+				eyeD3 "$fname" --user-text-frame="MusicBrainz Album Artist Id:$albumartistmbzid" &> /dev/null
+				echo "$logheader :: FIXING TAGS :: $filename fixed..."
+			done
 		fi
 	fi
 }
