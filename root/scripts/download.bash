@@ -13,10 +13,10 @@ Configuration () {
 	log ""
 	log ""
 	sleep 2
-	log "############################################ $TITLE"
-	log "############################################ SCRIPT VERSION 1.1.38"
-	log "############################################ DOCKER VERSION $VERSION"
-	log "############################################ CONFIGURATION VERIFICATION"
+	log "######################### $TITLE"
+	log "######################### SCRIPT VERSION 1.1.39"
+	log "######################### DOCKER VERSION $VERSION"
+	log "######################### CONFIGURATION VERIFICATION"
 	error=0
 
 	if [ "$AUTOSTART" == "true" ]; then
@@ -283,8 +283,9 @@ LidarrListImport () {
 	for id in ${!MBArtistID[@]}; do
 		artistnumber=$(( $id + 1 ))
 		mbid="${MBArtistID[$id]}"
-		deezerartisturlcount="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url" | wc -l)"
-		deezerartisturl=($(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url"))
+		lidarrartistinfo=$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\")")
+		deezerartisturlcount=$(echo "${lidarrartistinfo}" | jq -r ".links | .[] | select(.name==\"deezer\") | .url" | wc -l)
+		deezerartisturl=($(echo "${lidarrartistinfo}" | jq -r ".links | .[] | select(.name==\"deezer\") | .url"))
 		for url in ${!deezerartisturl[@]}; do
 			deezerid="${deezerartisturl[$url]}"
 			lidarrdeezerid=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
@@ -299,6 +300,12 @@ LidarrListImport () {
 			fi
 			if [ ! -f "/config/list/$lidarrdeezerid-lidarr" ]; then
 				echo -n "$mbid" > "/config/list/$lidarrdeezerid-lidarr"
+			fi
+			if [ ! -d /config/cache/artists/$lidarrdeezerid ]; then
+				mkdir -p /config/cache/artists/$lidarrdeezerid
+			fi
+			if [ ! -f /config/cache/artists/$lidarrdeezerid/$lidarrdeezerid-lidarr-info.json ]; then
+				echo "$lidarrartistinfo" > /config/cache/artists/$lidarrdeezerid/$lidarrdeezerid-lidarr-info.json
 			fi
 		done
 	done
@@ -601,11 +608,19 @@ ProcessArtist () {
 		
 		if [ -f /config/list/$albumartistid-lidarr ]; then
 			albumartistmbzid="$(cat /config/list/$albumartistid-lidarr)"
-			musicbrainzartistname=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/$albumartistmbzid?fmt=json" | jq -r '.name')
+			if [ -f /config/cache/artists/$albumartistid/$albumartistid-lidarr-info.json ]; then
+				log "$logheader :: Using Lidarr Album Artist Name & Musicbrainz ID: $albumartistmbzid"
+				musicbrainzartistname="$(cat /config/cache/artists/$albumartistid/$albumartistid-lidarr-info.json | jq -r '.artistName')"
+			else
+				log "$logheader :: Using Mysicbrainz Album Artist Name & Musicbrainz ID: $albumartistmbzid"
+				musicbrainzartistname="$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/$albumartistmbzid?fmt=json" | jq -r '.name')"
+				sleep 1.5
+			fi
 			TagFix
 		elif [ $albumartistid == 5080 ]; then
 			albumartistmbzid="89ad4ac3-39f7-470e-963a-56509c546377"
-			musicbrainzartistname=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/$albumartistmbzid?fmt=json" | jq -r '.name')
+			musicbrainzartistname="Various Artists"
+			log "$logheader :: Using Lidarr Album Artist Name & Musicbrainz ID: $albumartistmbzid"
 			TagFix
 		fi
 				
@@ -861,7 +876,7 @@ log () {
 
 Main () {
 	Configuration
-	log "############################################ SCRIPT START"
+	log "######################### SCRIPT START"
 	if [ "$LIDARR_LIST_IMPORT" == "true" ] || [ "$COMPLETE_MY_ARTISTS" == "true" ] || [ "$RELATED_ARTIST" == "true" ]; then
 		if [ "$LIDARR_LIST_IMPORT" == "true" ]; then
 			LidarrListImport
@@ -952,7 +967,11 @@ Main () {
 	else
 		log "No artists to process, add artist files to list directory"
 	fi
-	log "############################################ SCRIPT END"
+	log "######################### SCRIPT END"
+	
+	if [ "$AUTOSTART" == "true" ]; then
+		log "######################### SCRIPT SLEEPING FOR $SCRIPTINTERVAL"
+	fi
 }
 
 Main
