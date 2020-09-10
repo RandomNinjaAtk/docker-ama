@@ -3,7 +3,7 @@ LABEL maintainer="RandomNinjaAtk"
 
 ENV TITLE="Automated Music Archiver (AMA)"
 ENV TITLESHORT="AMA"
-ENV VERSION="1.0.1"
+ENV VERSION="1.0.2"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
@@ -14,6 +14,7 @@ RUN \
 		jq \
 		mp3val \
 		flac \
+		eyed3 \
 		opus-tools \
 		ffmpeg \
 		python3 \
