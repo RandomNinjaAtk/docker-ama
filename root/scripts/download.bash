@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.39"
+	log "######################### SCRIPT VERSION 1.1.40"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -691,7 +691,7 @@ Conversion () {
 			for fname in /downloads-ama/temp/*.flac; do
 				filename="$(basename "${fname%.flac}")"
 				if [ "${FORMAT}" == "OPUS" ]; then
-					if opusenc --bitrate $BITRATE --vbr "$fname" "${fname%.flac}.temp.$extension"; then
+					if opusenc --bitrate $BITRATE --hard-cbr "$fname" "${fname%.flac}.temp.$extension"; then
 						converterror=0
 					else
 						converterror=1
