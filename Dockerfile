@@ -3,7 +3,7 @@ LABEL maintainer="RandomNinjaAtk"
 
 ENV TITLE="Automated Music Archiver (AMA)"
 ENV TITLESHORT="AMA"
-ENV VERSION="1.0.2"
+ENV VERSION="1.0.3"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
@@ -11,6 +11,7 @@ RUN \
 	apt-get update && \
 	apt-get upgrade -y && \
 	apt-get install -y --no-install-recommends \
+		netbase \
 		jq \
 		mp3val \
 		flac \
