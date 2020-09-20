@@ -8,7 +8,7 @@ COPY --from=ffmpeg /usr/local/ /usr/local/
 
 ENV TITLE="Automated Music Archiver (AMA)"
 ENV TITLESHORT="AMA"
-ENV VERSION="1.0.5"
+ENV VERSION="1.0.6"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
@@ -48,6 +48,7 @@ RUN \
 	apt-get install -y --no-install-recommends \
 		libva-drm2 \
 		libva2 \
+		libgomp1 \
 		i965-va-driver && \
 	rm -rf \
 		/tmp/* \
