@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.42"
+	log "######################### SCRIPT VERSION 1.1.43"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -628,6 +628,8 @@ ProcessArtist () {
 			musicbrainzartistname="Various Artists"
 			log "$logheader :: Using Lidarr Album Artist Name & Musicbrainz ID: $albumartistmbzid"
 			TagFix
+		else
+			albumartistmbzid=""
 		fi
 				
 		Conversion
