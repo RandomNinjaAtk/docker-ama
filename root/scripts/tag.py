@@ -35,6 +35,9 @@ parser.add_argument('--songmixer', type=str, help='A required integer positional
 parser.add_argument('--songpublisher', type=str, help='A required integer positional argument')
 parser.add_argument('--songcomment', type=str, help='A required integer positional argument')
 parser.add_argument('--songbarcode', type=str, help='A required integer positional argument')
+parser.add_argument('--mbrainzalbumartistid', type=str, help='A required integer positional argument')
+parser.add_argument('--mbrainzreleasegroupid', type=str, help='A required integer positional argument')
+parser.add_argument('--mbrainzalbumid', type=str, help='A required integer positional argument')
 args = parser.parse_args()
 
 filename = args.file
@@ -66,6 +69,9 @@ mixer = args.songmixer
 label = args.songpublisher
 barcode = args.songbarcode
 comment = args.songcomment
+albumartistid = args.mbrainzalbumartistid
+releasegroupid = args.mbrainzreleasegroupid
+albumid = args.mbrainzalbumid
 
 audio = MP4(filename)
 audio["\xa9nam"] = [title]
@@ -97,6 +103,14 @@ if barcode:
     audio["----:com.apple.iTunes:BARCODE"] = barcode.encode()
 if isrc:
     audio["----:com.apple.iTunes:ISRC"] = isrc.encode()
+if albumartistid:
+    audio["----:com.apple.iTunes:MusicBrainz Album Artist Id"] = albumartistid.encode()
+if releasegroupid:
+    audio["----:com.apple.iTunes:MusicBrainz Release Group Id"] = releasegroupid.encode()
+if albumid:
+    audio["----:com.apple.iTunes:MusicBrainz Album Id"] = albumid.encode()
+
+
 if ( compilation == 1 ):
    audio["cpil"] = [compilation]
 audio["stik"] = [1]
