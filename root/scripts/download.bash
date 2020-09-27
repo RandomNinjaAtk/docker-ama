@@ -3,6 +3,7 @@ export XDG_CONFIG_HOME="/config/deemix/xdg"
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 agent="automated-music-archiver ( https://github.com/RandomNinjaAtk/docker-ama )"
+FORCECONVERT=false
 
 Configuration () {
 	processstartid="$(ps -A -o pid,cmd|grep "start.bash" | grep -v grep | head -n 1 | awk '{print $1}')"
@@ -14,7 +15,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.40"
+	log "######################### SCRIPT VERSION 1.1.41"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -685,11 +686,172 @@ AlbumFilter () {
 
 Conversion () {
 	converttrackcount=$(find  /downloads-ama/temp/ -name "*.flac" | wc -l)
+	if [ "$extension" == "m4a" ]; then
+			cover="/downloads-ama/temp/folder.jpg"
+			songtitle="null"
+			songalbum="null"
+			songartist="null"
+			songartistalbum="null"
+			songoriginalbpm="null"
+			songbpm="null"
+			songcopyright="null"
+			songtracknumber="null"
+			songtracktotal="null"
+			songdiscnumber="null"
+			songdisctotal="null"
+			songlyricrating="null"
+			songcompilation="null"
+			songdate="null"
+			songyear="null"
+			songgenre="null"
+			songcomposer="null"
+			songisrc="null"
+		fi
 	if [ "${FORMAT}" != "FLAC" ]; then
 		if find /downloads-ama/temp/ -name "*.flac" | read; then
 			log "$logheader :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $FORMAT (${BITRATE}))"
 			for fname in /downloads-ama/temp/*.flac; do
 				filename="$(basename "${fname%.flac}")"
+				if [ "$extension" == "m4a" ]; then					
+					tags="$(ffprobe -v quiet -print_format json -show_format "$fname" | jq -r '.[] | .tags')"
+					filelrc="${fname%.flac}.lrc"
+					songtitle="$(echo "$tags" | jq -r ".TITLE")"
+					songalbum="$(echo "$tags" | jq -r ".ALBUM")"
+					songartist="$(echo "$tags" | jq -r ".ARTIST")"
+					songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
+					songoriginalbpm="$(echo "$tags" | jq -r ".BPM")"
+					songbpm=${songoriginalbpm%.*}
+					songcopyright="$(echo "$tags" | jq -r ".COPYRIGHT")"
+					songpublisher="$(echo "$tags" | jq -r ".PUBLISHER")"
+					songtracknumber="$(echo "$tags" | jq -r ".track")"
+					songtracktotal="$(echo "$tags" | jq -r ".TRACKTOTAL")"
+					songdiscnumber="$(echo "$tags" | jq -r ".disc")"
+					songdisctotal="$(echo "$tags" | jq -r ".DISCTOTAL")"
+					songlyricrating="$(echo "$tags" | jq -r ".ITUNESADVISORY")"
+					songcompilation="$(echo "$tags" | jq -r ".COMPILATION")"
+					songdate="$(echo "$tags" | jq -r ".DATE")"
+					songyear="${songdate:0:4}"
+					songgenre="$(echo "$tags" | jq -r ".GENRE" | cut -f1 -d";")"
+					songcomposer="$(echo "$tags" | jq -r ".composer")"
+					songcomment="Source File: FLAC"
+					songisrc="$(echo "$tags" | jq -r ".ISRC")"
+					songauthor="$(echo "$tags" | jq -r ".author")"
+					songartists="$(echo "$tags" | jq -r ".ARTISTS")"
+					songengineer="$(echo "$tags" | jq -r ".engineer")"
+					songproducer="$(echo "$tags" | jq -r ".producer")"
+					songmixer="$(echo "$tags" | jq -r ".mixer")"
+					songwriter="$(echo "$tags" | jq -r ".writer")"
+					songbarcode="$(echo "$tags" | jq -r ".BARCODE")"
+										
+					if [ -f "$filelrc" ]; then
+						songsyncedlyrics="$(cat "$filelrc")"
+					else
+						songsyncedlyrics=""
+					fi
+
+					if [ "$songtitle" = "null" ]; then
+						songtitle=""
+					fi
+
+					if [ "$songpublisher" = "null" ]; then
+						songpublisher=""
+					fi
+
+					if [ "$songalbum" = "null" ]; then
+						songalbum=""
+					fi
+
+					if [ "$songartist" = "null" ]; then
+						songartist=""
+					fi
+
+					if [ "$songartistalbum" = "null" ]; then
+						songartistalbum=""
+					fi
+
+					if [ "$songbpm" = "null" ]; then
+						songbpm=""
+					fi
+
+					if [ "$songlyricrating" = "null" ]; then
+						songlyricrating="0"
+					fi
+
+					if [ "$songcopyright" = "null" ]; then
+						songcopyright=""
+					fi
+
+					if [ "$songtracknumber" = "null" ]; then
+						songtracknumber=""
+					fi
+
+					if [ "$songtracktotal" = "null" ]; then
+						songtracktotal=""
+					fi
+
+					if [ "$songdiscnumber" = "null" ]; then
+						songdiscnumber=""
+					fi
+
+					if [ "$songdisctotal" = "null" ]; then
+						songdisctotal=""
+					fi
+
+					if [ "$songcompilation" = "null" ]; then
+						songcompilation="0"
+					fi
+
+					if [ "$songdate" = "null" ]; then
+						songdate=""
+					fi
+					
+					if [ "$songyear" = "null" ]; then
+						songyear=""
+					fi
+
+					if [ "$songgenre" = "null" ]; then
+						songgenre=""
+					fi
+
+					if [ "$songcomposer" = "null" ]; then
+						songcomposer=""
+					else
+						songcomposer=${songcomposert//\//, }
+					fi
+
+					if [ "$songwriter" = "null" ]; then
+						songwriter=""
+					fi
+
+					if [ "$songauthor" = "null" ]; then
+						songauthor="$songwriter"
+					fi
+
+					if [ "$songartists" = "null" ]; then
+						songartists=""
+					fi
+
+					if [ "$songengineer" = "null" ]; then
+						songengineer=""
+					fi
+
+					if [ "$songproducer" = "null" ]; then
+						songproducer=""
+					fi
+
+					if [ "$songmixer" = "null" ]; then
+						songmixer=""
+					fi
+
+					if [ "$songbarcode" = "null" ]; then
+						songbarcode=""
+					fi
+
+					if [ "$songcomment" = "null" ]; then
+						songcomment=""
+					fi
+				fi
+	
 				if [ "${FORMAT}" == "OPUS" ]; then
 					if opusenc --bitrate $BITRATE --hard-cbr "$fname" "${fname%.flac}.temp.$extension"; then
 						converterror=0
@@ -713,8 +875,262 @@ Conversion () {
 					mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
 					log "$logheader :: CONVERSION :: $filename :: Converted!"
 				fi
+				
+				if [ "$extension" == "m4a" ]; then
+					log "$logheader :: CONVERSION :: $filename :: Tagging"
+					python3 /config/scripts/tag.py \
+						--file "${fname%.flac}.$extension" \
+						--songtitle "$songtitle" \
+						--songalbum "$songalbum" \
+						--songartist "$songartist" \
+						--songartistalbum "$songartistalbum" \
+						--songbpm "$songbpm" \
+						--songcopyright "$songcopyright" \
+						--songtracknumber "$songtracknumber" \
+						--songtracktotal "$songtracktotal" \
+						--songdiscnumber "$songdiscnumber" \
+						--songdisctotal "$songdisctotal" \
+						--songcompilation "$songcompilation" \
+						--songlyricrating "$songlyricrating" \
+						--songdate "$songdate" \
+						--songyear "$songyear" \
+						--songgenre "$songgenre" \
+						--songcomposer "$songcomposer" \
+						--songisrc "$songisrc" \
+						--songauthor "$songauthor" \
+						--songartists "$songartists" \
+						--songengineer "$songengineer" \
+						--songproducer "$songproducer" \
+						--songmixer "$songmixer" \
+						--songpublisher "$songpublisher" \
+						--songcomment "$songcomment" \
+						--songbarcode "$songbarcode" \
+						--mbrainzalbumartistid "$albumartistmbzid" \
+						--mbrainzreleasegroupid "$albumreleasegroupmbzid" \
+						--mbrainzalbumid "$albummbid" \
+						--songartwork "$cover"
+					log "$logheader :: CONVERSION :: $filename :: Tagged"
+				fi
+				
 			done
 		fi
+		
+		if [ $FORCECONVERT == true ]; then
+			if [[ "${FORMAT}" != "MP3" && "${FORMAT}" != "FLAC" ]]; then
+				if find /downloads-ama/temp/ -name "*.mp3" | read; then
+					for fname in /downloads-ama/temp/*.mp3; do
+						filename="$(basename "${fname%.mp3}")"
+						if [ "$extension" = "m4a" ]; then
+							if [ "${FORMAT}" == "ALAC" ]; then
+								origoptions="$options"
+								options="-c:a libfdk_aac -b:a ${BITRATE}k -movflags faststart"
+							fi
+							tags="$(ffprobe -v quiet -print_format json -show_format "$fname" | jq -r '.[] | .tags')"
+							filelrc="${fname%.flac}.lrc"
+							songtitle="$(echo "$tags" | jq -r ".title")"
+							songalbum="$(echo "$tags" | jq -r ".album")"
+							songartist="$(echo "$tags" | jq -r ".artist")"
+							songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
+							songoriginalbpm="$(echo "$tags" | jq -r ".TBPM")"
+							songbpm=${songoriginalbpm%.*}
+							songcopyright="$(echo "$tags" | jq -r ".copyright")"
+							songpublisher="$(echo "$tags" | jq -r ".publisher")"
+							songtracknumber="$(echo "$tags" | jq -r ".track" | cut -f1 -d "/")"
+							songtracktotal="$(echo "$tags" | jq -r ".track" | cut -f2 -d "/")"
+							songdiscnumber="$(echo "$tags" | jq -r ".disc" | cut -f1 -d "/")"
+							songdisctotal="$(echo "$tags" | jq -r ".disc" | cut -f2 -d "/")"
+							songlyricrating="$(echo "$tags" | jq -r ".ITUNESADVISORY")"
+							songcompilation="$(echo "$tags" | jq -r ".compilation")"
+							songdate="$(echo "$tags" | jq -r ".date")"
+							songyear="$(echo "$tags" | jq -r ".date")"
+							songgenre="$(echo "$tags" | jq -r ".genre" | cut -f1 -d";")"
+							songcomposer="$(echo "$tags" | jq -r ".composer")"
+							songcomment="Source File: MP3"
+							songisrc="$(echo "$tags" | jq -r ".TSRC")"
+							songauthor=""
+							songartists="$(echo "$tags" | jq -r ".ARTISTS")"
+							songengineer=""
+							songproducer=""
+							songmixer=""
+							songbarcode="$(echo "$tags" | jq -r ".BARCODE")"
+						
+
+							if [ -f "$filelrc" ]; then
+								songsyncedlyrics="$(cat "$filelrc")"
+							else
+								songsyncedlyrics=""
+							fi
+
+							if [ "$songtitle" = "null" ]; then
+								songtitle=""
+							fi
+
+							if [ "$songpublisher" = "null" ]; then
+								songpublisher=""
+							fi
+
+							if [ "$songalbum" = "null" ]; then
+								songalbum=""
+							fi
+
+							if [ "$songartist" = "null" ]; then
+								songartist=""
+							fi
+
+							if [ "$songartistalbum" = "null" ]; then
+								songartistalbum=""
+							fi
+
+							if [ "$songbpm" = "null" ]; then
+								songbpm=""
+							fi
+
+							if [ "$songlyricrating" = "null" ]; then
+								songlyricrating="0"
+							fi
+
+							if [ "$songcopyright" = "null" ]; then
+								songcopyright=""
+							fi
+
+							if [ "$songtracknumber" = "null" ]; then
+								songtracknumber=""
+							fi
+
+							if [ "$songtracktotal" = "null" ]; then
+								songtracktotal=""
+							fi
+
+							if [ "$songdiscnumber" = "null" ]; then
+								songdiscnumber=""
+							fi
+
+							if [ "$songdisctotal" = "null" ]; then
+								songdisctotal=""
+							fi
+
+							if [ "$songcompilation" = "null" ]; then
+								songcompilation="0"
+							fi
+
+							if [ "$songdate" = "null" ]; then
+								songdate=""
+							fi
+							
+							if [ "$songyear" = "null" ]; then
+								songyear=""
+							fi
+
+							if [ "$songgenre" = "null" ]; then
+								songgenre=""
+							fi
+
+							if [ "$songcomposer" = "null" ]; then
+								songcomposer=""
+							else
+								songcomposer=${songcomposer//;/, }						
+							fi
+
+							if [ "$songwriter" = "null" ]; then
+								songwriter=""
+							fi
+
+							if [ "$songauthor" = "null" ]; then
+								songauthor="$songwriter"
+							fi
+
+							if [ "$songartists" = "null" ]; then
+								songartists=""
+							fi
+
+							if [ "$songengineer" = "null" ]; then
+								songengineer=""
+							fi
+
+							if [ "$songproducer" = "null" ]; then
+								songproducer=""
+							fi
+
+							if [ "$songmixer" = "null" ]; then
+								songmixer=""
+							fi
+
+							if [ "$songbarcode" = "null" ]; then
+								songbarcode=""
+							fi
+
+							if [ "$songcomment" = "null" ]; then
+								songcomment=""
+							fi
+						fi
+						
+						if [ "${FORMAT}" == "OPUS" ]; then
+							if opusenc --bitrate $BITRATE --hard-cbr "$fname" "${fname%.mp3}.temp.$extension"; then
+								converterror=0
+							else
+								converterror=1
+							fi
+						else
+							if ffmpeg -loglevel warning -hide_banner -nostats -i "$fname" -n -vn $options "${fname%.mp3}.temp.$extension"; then
+								converterror=0
+							else
+								converterror=1
+							fi
+						fi
+						if [ "${FORMAT}" == "ALAC" ]; then
+							options="$origoptions"
+						fi
+						if [ "$converterror" == "1" ]; then
+							log "$logheader :: CONVERSION :: ERROR :: Coversion Failed: $filename, performing cleanup..."
+							rm "${fname%.mp3}.temp.$extension"
+							continue
+						elif [ -f "${fname%.mp3}.temp.$extension" ]; then
+							rm "$fname"
+							sleep 0.1
+							mv "${fname%.mp3}.temp.$extension" "${fname%.mp3}.$extension"
+							log "$logheader :: CONVERSION :: $filename :: Converted!"
+						fi
+						
+						if [ "$extension" == "m4a" ]; then
+							log "$logheader :: CONVERSION :: $filename :: Tagging"
+							python3 /config/scripts/tag.py \
+								--file "${fname%.mp3}.$extension" \
+								--songtitle "$songtitle" \
+								--songalbum "$songalbum" \
+								--songartist "$songartist" \
+								--songartistalbum "$songartistalbum" \
+								--songbpm "$songbpm" \
+								--songcopyright "$songcopyright" \
+								--songtracknumber "$songtracknumber" \
+								--songtracktotal "$songtracktotal" \
+								--songdiscnumber "$songdiscnumber" \
+								--songdisctotal "$songdisctotal" \
+								--songcompilation "$songcompilation" \
+								--songlyricrating "$songlyricrating" \
+								--songdate "$songdate" \
+								--songyear "$songyear" \
+								--songgenre "$songgenre" \
+								--songcomposer "$songcomposer" \
+								--songisrc "$songisrc" \
+								--songauthor "$songauthor" \
+								--songartists "$songartists" \
+								--songengineer "$songengineer" \
+								--songproducer "$songproducer" \
+								--songmixer "$songmixer" \
+								--songpublisher "$songpublisher" \
+								--songcomment "$songcomment" \
+								--songbarcode "$songbarcode" \
+								--mbrainzalbumartistid "$albumartistmbzid" \
+								--mbrainzreleasegroupid "$albumreleasegroupmbzid" \
+								--mbrainzalbumid "$albummbid" \
+								--songartwork "$cover"
+							log "$logheader :: CONVERSION :: $filename :: Tagged"
+						fi
+					done
+				fi
+			fi
+		fi
+		
 	fi
 }
 
