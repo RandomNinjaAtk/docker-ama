@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.47"
+	log "######################### SCRIPT VERSION 1.1.48"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -716,42 +716,42 @@ FlacConvert () {
 		songcomposer="null"
 		songisrc="null"
 	fi
-				if [ "$extension" == "m4a" ]; then					
-					tags="$(ffprobe -v quiet -print_format json -show_format "$fname" | jq -r '.[] | .tags')"
-					filelrc="${fname%.flac}.lrc"
-					songtitle="$(echo "$tags" | jq -r ".TITLE")"
-					songalbum="$(echo "$tags" | jq -r ".ALBUM")"
-					songartist="$(echo "$tags" | jq -r ".ARTIST")"
-					songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
-					songoriginalbpm="$(echo "$tags" | jq -r ".BPM")"
-					songbpm=${songoriginalbpm%.*}
-					songcopyright="$(echo "$tags" | jq -r ".COPYRIGHT")"
-					songpublisher="$(echo "$tags" | jq -r ".PUBLISHER")"
-					songtracknumber="$(echo "$tags" | jq -r ".track")"
-					songtracktotal="$(echo "$tags" | jq -r ".TRACKTOTAL")"
-					songdiscnumber="$(echo "$tags" | jq -r ".disc")"
-					songdisctotal="$(echo "$tags" | jq -r ".DISCTOTAL")"
-					songlyricrating="$(echo "$tags" | jq -r ".ITUNESADVISORY")"
-					songcompilation="$(echo "$tags" | jq -r ".COMPILATION")"
-					songdate="$(echo "$tags" | jq -r ".DATE")"
-					songyear="${songdate:0:4}"
-					songgenre="$(echo "$tags" | jq -r ".GENRE" | cut -f1 -d";")"
-					songcomposer="$(echo "$tags" | jq -r ".composer")"
-					songcomment="Source File: FLAC"
-					songisrc="$(echo "$tags" | jq -r ".ISRC")"
-					songauthor="$(echo "$tags" | jq -r ".author")"
-					songartists="$(echo "$tags" | jq -r ".ARTISTS")"
-					songengineer="$(echo "$tags" | jq -r ".engineer")"
-					songproducer="$(echo "$tags" | jq -r ".producer")"
-					songmixer="$(echo "$tags" | jq -r ".mixer")"
-					songwriter="$(echo "$tags" | jq -r ".writer")"
-					songbarcode="$(echo "$tags" | jq -r ".BARCODE")"
+	if [ "$extension" == "m4a" ]; then					
+		tags="$(ffprobe -v quiet -print_format json -show_format "$fname" | jq -r '.[] | .tags')"
+		filelrc="${fname%.flac}.lrc"
+		songtitle="$(echo "$tags" | jq -r ".TITLE")"
+		songalbum="$(echo "$tags" | jq -r ".ALBUM")"
+		songartist="$(echo "$tags" | jq -r ".ARTIST")"
+		songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
+		songoriginalbpm="$(echo "$tags" | jq -r ".BPM")"
+		songbpm=${songoriginalbpm%.*}
+		songcopyright="$(echo "$tags" | jq -r ".COPYRIGHT")"
+		songpublisher="$(echo "$tags" | jq -r ".PUBLISHER")"
+		songtracknumber="$(echo "$tags" | jq -r ".track")"
+		songtracktotal="$(echo "$tags" | jq -r ".TRACKTOTAL")"
+		songdiscnumber="$(echo "$tags" | jq -r ".disc")"
+		songdisctotal="$(echo "$tags" | jq -r ".DISCTOTAL")"
+		songlyricrating="$(echo "$tags" | jq -r ".ITUNESADVISORY")"
+		songcompilation="$(echo "$tags" | jq -r ".COMPILATION")"
+		songdate="$(echo "$tags" | jq -r ".DATE")"
+		songyear="${songdate:0:4}"
+		songgenre="$(echo "$tags" | jq -r ".GENRE" | cut -f1 -d";")"
+		songcomposer="$(echo "$tags" | jq -r ".composer")"
+		songcomment="Source File: FLAC"
+		songisrc="$(echo "$tags" | jq -r ".ISRC")"
+		songauthor="$(echo "$tags" | jq -r ".author")"
+		songartists="$(echo "$tags" | jq -r ".ARTISTS")"
+		songengineer="$(echo "$tags" | jq -r ".engineer")"
+		songproducer="$(echo "$tags" | jq -r ".producer")"
+		songmixer="$(echo "$tags" | jq -r ".mixer")"
+		songwriter="$(echo "$tags" | jq -r ".writer")"
+		songbarcode="$(echo "$tags" | jq -r ".BARCODE")"
 										
-					if [ -f "$filelrc" ]; then
-						songsyncedlyrics="$(cat "$filelrc")"
-					else
-						songsyncedlyrics=""
-					fi
+		if [ -f "$filelrc" ]; then
+			songsyncedlyrics="$(cat "$filelrc")"
+		else
+			songsyncedlyrics=""
+		fi
 
 					if [ "$songtitle" = "null" ]; then
 						songtitle=""
@@ -874,8 +874,6 @@ FlacConvert () {
 					rm "${fname%.flac}.temp.$extension"
 					continue
 				elif [ -f "${fname%.flac}.temp.$extension" ]; then
-					rm "$fname"
-					sleep 0.1
 					mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
 					log "$logheader :: CONVERSION :: $filename :: Converted!"
 				fi
@@ -915,7 +913,10 @@ FlacConvert () {
 						--songartwork "$cover"
 					log "$logheader :: CONVERSION :: $filename :: Tagged"
 				fi
-				
+	if [ -f "${fname%.flac}.temp.$extension" ]; then
+		rm "$fname"
+		sleep 0.1
+	fi			
 }
 
 MP3Convert () {
@@ -1107,8 +1108,6 @@ MP3Convert () {
 							rm "${fname%.mp3}.temp.$extension"
 							continue
 						elif [ -f "${fname%.mp3}.temp.$extension" ]; then
-							rm "$fname"
-							sleep 0.1
 							mv "${fname%.mp3}.temp.$extension" "${fname%.mp3}.$extension"
 							log "$logheader :: CONVERSION :: $filename :: Converted!"
 						fi
@@ -1148,6 +1147,10 @@ MP3Convert () {
 								--songartwork "$cover"
 							log "$logheader :: CONVERSION :: $filename :: Tagged"
 						fi
+	if [ -f "${fname%.mp3}.temp.$extension" ]; then
+		rm "$fname"
+		sleep 0.1
+	fi
 }
 
 Conversion () {
