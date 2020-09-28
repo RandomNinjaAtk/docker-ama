@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.43"
+	log "######################### SCRIPT VERSION 1.1.44"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -78,10 +78,11 @@ Configuration () {
 
 	if [ ! -z "$CONCURRENT_DOWNLOADS" ]; then
 		log "$TITLESHORT: Concurrent Downloads: $CONCURRENT_DOWNLOADS"
-		sed -i "s%queueConcurrency\"] = 1%queueConcurrency\"] = $CONCURRENT_DOWNLOADS%g" "/config/scripts/dlclient.py"
+		sed -i "s%CONCURRENT_DOWNLOADS%$CONCURRENT_DOWNLOADS%g" "/config/scripts/dlclient.py"
 	else
 		log "WARNING: CONCURRENT_DOWNLOADS setting invalid, defaulting to: 1"
 		CONCURRENT_DOWNLOADS="1"
+		sed -i "s%CONCURRENT_DOWNLOADS%$CONCURRENT_DOWNLOADS%g" "/config/scripts/dlclient.py"
 	fi
 
 	if [ -z "$REQUIRE_QUALITY" ]; then
