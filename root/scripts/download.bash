@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.49"
+	log "######################### SCRIPT VERSION 1.1.50"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -1153,16 +1153,30 @@ MP3Convert () {
 }
 
 Conversion () {
-	converttrackcount=$(find  /downloads-ama/temp/ -name "*.flac" | wc -l)
 	if [ "${FORMAT}" != "FLAC" ]; then
+		if [ $FORCECONVERT == true ]; then
+			converttrackcount=$(find /downloads-ama/temp/ -iregex ".*/.*\.\(flac\|mp3\)" | wc -l)
+		else
+			converttrackcount=$(find /downloads-ama/temp/ -name "*.flac" | wc -l)
+		fi
+		log "$logheader :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $FORMAT (${BITRATE}))"
 		if find /downloads-ama/temp/ -name "*.flac" | read; then
-			log "$logheader :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $FORMAT (${BITRATE}))"
 			for fname in /downloads-ama/temp/*.flac; do
 				FlacConvert "$fname" &		
 				N=$POSTPROCESSTHREADS
 				(( ++count % N == 0)) && wait
 			done
 		fi
+		
+		check=1
+		let j=0
+		while [[ $check -le 1 ]]; do
+			if find /downloads-ama/temp -iname "*.flac" | read; then
+				check=1
+			else
+				check=2
+			fi
+		done
 		
 		if [ $FORCECONVERT == true ]; then
 			if [[ "${FORMAT}" != "MP3" && "${FORMAT}" != "FLAC" ]]; then
@@ -1174,28 +1188,18 @@ Conversion () {
 					done
 				fi
 			fi
+			check=1
+			let j=0
+			while [[ $check -le 1 ]]; do
+				if find /downloads-ama/temp -iname "*.mp3" | read; then
+					check=1
+				else
+					check=2
+				fi
+			done
 		fi
-		check=1
-		let j=0
-		while [[ $check -le 1 ]]; do
-			let j++
-			if [ $FORCECONVERT == true ]; then
-				if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
-					check=1
-				else
-					check=2
-				fi
-			else
-				if find /downloads-ama/temp -iname "*.flac" | read; then
-					check=1
-				else
-					check=2
-				fi
-			fi
-		done
 	fi
 }
-
 
 AddReplaygainTags () {
 	if [ "$REPLAYGAIN" == "true" ]; then
