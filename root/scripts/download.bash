@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.51"
+	log "######################### SCRIPT VERSION 1.1.52"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -1228,8 +1228,8 @@ ProcessArtistRelated () {
 			artistrelatedfile=$(cat  /config/cache/artists/$artistid/$artistid-related.json)
 			artistrelatedcount="$(echo "$artistrelatedfile" | jq -r ".total")"
 			if [ "$artistrelatedcount" -gt "0" ]; then
-				artistrelatedidlist=($(echo "$artistrelatedfile" | jq ".data[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT))
-				artistrelatedidlistcount=$(echo "$artistrelatedfile" | jq ".data[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT | wc -l)
+				artistrelatedidlist=($(echo "$artistrelatedfile" | jq ".data | sort_by(.nb_fan) | reverse | .[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT))
+				artistrelatedidlistcount=$(echo "$artistrelatedfile" | jq ".data | sort_by(.nb_fan) | reverse | .[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT | wc -l)
 				for id in ${!artistrelatedidlist[@]}; do
 					relatedartistnumber=$(( $id + 1 ))
 					artistrelatedid="${artistrelatedidlist[$id]}"
