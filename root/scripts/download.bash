@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.52"
+	log "######################### SCRIPT VERSION 1.1.53"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -586,7 +586,10 @@ ProcessArtist () {
 			chmod $FOLDERPERM /downloads-ama/temp
 			chown -R abc:abc /downloads-ama/temp
 		fi
-
+		
+		# add plex ignore file temporarily
+		touch /downloads-ama/temp/.plexignore
+		
 		if python3 /config/scripts/dlclient.py -b $quality "$deezeralbumurl"; then
 			sleep 0.5
 			if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
@@ -645,6 +648,10 @@ ProcessArtist () {
 			chmod $FOLDERPERM "$artistfolder/$albumfolder"
 			chown -R abc:abc "$artistfolder/$albumfolder"
 		fi
+		
+		# remove plex ignore file temporarily
+		rm /downloads-ama/temp/.plexignore
+		
 		mv /downloads-ama/temp/* "$artistfolder/$albumfolder"/
 		chmod $FILEPERM "$artistfolder/$albumfolder"/*
 		chown -R abc:abc "$artistfolder/$albumfolder"
