@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.48"
+	log "######################### SCRIPT VERSION 1.1.49"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -913,7 +913,7 @@ FlacConvert () {
 						--songartwork "$cover"
 					log "$logheader :: CONVERSION :: $filename :: Tagged"
 				fi
-	if [ -f "${fname%.flac}.temp.$extension" ]; then
+	if [ -f "${fname%.flac}.$extension" ]; then
 		rm "$fname"
 		sleep 0.1
 	fi			
@@ -950,67 +950,66 @@ MP3Convert () {
 		fi
 		tags="$(ffprobe -v quiet -print_format json -show_format "$fname" | jq -r '.[] | .tags')"
 		filelrc="${fname%.flac}.lrc"
-							songtitle="$(echo "$tags" | jq -r ".title")"
-							songalbum="$(echo "$tags" | jq -r ".album")"
-							songartist="$(echo "$tags" | jq -r ".artist")"
-							songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
-							songoriginalbpm="$(echo "$tags" | jq -r ".TBPM")"
-							songbpm=${songoriginalbpm%.*}
-							songcopyright="$(echo "$tags" | jq -r ".copyright")"
-							songpublisher="$(echo "$tags" | jq -r ".publisher")"
-							songtracknumber="$(echo "$tags" | jq -r ".track" | cut -f1 -d "/")"
-							songtracktotal="$(echo "$tags" | jq -r ".track" | cut -f2 -d "/")"
-							songdiscnumber="$(echo "$tags" | jq -r ".disc" | cut -f1 -d "/")"
-							songdisctotal="$(echo "$tags" | jq -r ".disc" | cut -f2 -d "/")"
-							songlyricrating="$(echo "$tags" | jq -r ".ITUNESADVISORY")"
-							songcompilation="$(echo "$tags" | jq -r ".compilation")"
-							songdate="$(echo "$tags" | jq -r ".date")"
-							songyear="$(echo "$tags" | jq -r ".date")"
-							songgenre="$(echo "$tags" | jq -r ".genre" | cut -f1 -d";")"
-							songcomposer="$(echo "$tags" | jq -r ".composer")"
-							songcomment="Source File: MP3"
-							songisrc="$(echo "$tags" | jq -r ".TSRC")"
-							songauthor=""
-							songartists="$(echo "$tags" | jq -r ".ARTISTS")"
-							songengineer=""
-							songproducer=""
-							songmixer=""
-							songbarcode="$(echo "$tags" | jq -r ".BARCODE")"
-						
+		songtitle="$(echo "$tags" | jq -r ".title")"
+		songalbum="$(echo "$tags" | jq -r ".album")"
+		songartist="$(echo "$tags" | jq -r ".artist")"
+		songartistalbum="$(echo "$tags" | jq -r ".album_artist")"
+		songoriginalbpm="$(echo "$tags" | jq -r ".TBPM")"
+		songbpm=${songoriginalbpm%.*}
+		songcopyright="$(echo "$tags" | jq -r ".copyright")"
+		songpublisher="$(echo "$tags" | jq -r ".publisher")"
+		songtracknumber="$(echo "$tags" | jq -r ".track" | cut -f1 -d "/")"
+		songtracktotal="$(echo "$tags" | jq -r ".track" | cut -f2 -d "/")"
+		songdiscnumber="$(echo "$tags" | jq -r ".disc" | cut -f1 -d "/")"
+		songdisctotal="$(echo "$tags" | jq -r ".disc" | cut -f2 -d "/")"
+		songlyricrating="$(echo "$tags" | jq -r ".ITUNESADVISORY")"
+		songcompilation="$(echo "$tags" | jq -r ".compilation")"
+		songdate="$(echo "$tags" | jq -r ".date")"
+		songyear="$(echo "$tags" | jq -r ".date")"
+		songgenre="$(echo "$tags" | jq -r ".genre" | cut -f1 -d";")"
+		songcomposer="$(echo "$tags" | jq -r ".composer")"
+		songcomment="Source File: MP3"
+		songisrc="$(echo "$tags" | jq -r ".TSRC")"
+		songauthor=""
+		songartists="$(echo "$tags" | jq -r ".ARTISTS")"
+		songengineer=""
+		songproducer=""
+		songmixer=""
+		songbarcode="$(echo "$tags" | jq -r ".BARCODE")"	
 
-							if [ -f "$filelrc" ]; then
-								songsyncedlyrics="$(cat "$filelrc")"
-							else
-								songsyncedlyrics=""
-							fi
+		if [ -f "$filelrc" ]; then
+			songsyncedlyrics="$(cat "$filelrc")"
+		else
+			songsyncedlyrics=""
+		fi
 
-							if [ "$songtitle" = "null" ]; then
-								songtitle=""
-							fi
+		if [ "$songtitle" = "null" ]; then
+			songtitle=""
+		fi
 
-							if [ "$songpublisher" = "null" ]; then
-								songpublisher=""
-							fi
+		if [ "$songpublisher" = "null" ]; then
+			songpublisher=""
+		fi
 
-							if [ "$songalbum" = "null" ]; then
-								songalbum=""
-							fi
+		if [ "$songalbum" = "null" ]; then
+			songalbum=""
+		fi
 
-							if [ "$songartist" = "null" ]; then
-								songartist=""
-							fi
+		if [ "$songartist" = "null" ]; then
+			songartist=""
+		fi
 
-							if [ "$songartistalbum" = "null" ]; then
-								songartistalbum=""
-							fi
+		if [ "$songartistalbum" = "null" ]; then
+			songartistalbum=""
+		fi
 
-							if [ "$songbpm" = "null" ]; then
-								songbpm=""
-							fi
+		if [ "$songbpm" = "null" ]; then
+			songbpm=""
+		fi
 
-							if [ "$songlyricrating" = "null" ]; then
-								songlyricrating="0"
-							fi
+		if [ "$songlyricrating" = "null" ]; then
+			songlyricrating="0"
+		fi
 
 							if [ "$songcopyright" = "null" ]; then
 								songcopyright=""
@@ -1147,7 +1146,7 @@ MP3Convert () {
 								--songartwork "$cover"
 							log "$logheader :: CONVERSION :: $filename :: Tagged"
 						fi
-	if [ -f "${fname%.mp3}.temp.$extension" ]; then
+	if [ -f "${fname%.mp3}.$extension" ]; then
 		rm "$fname"
 		sleep 0.1
 	fi
