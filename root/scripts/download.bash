@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.46"
+	log "######################### SCRIPT VERSION 1.1.47"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -1172,27 +1172,28 @@ Conversion () {
 					done
 				fi
 			fi
-			check=1
-			let j=0
-			while [[ $check -le 1 ]]; do
-				let j++
-				if [ $FORCECONVERT == true ]; then
-					if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
-						check=1
-					else
-						check=2
-					fi
+		fi
+		check=1
+		let j=0
+		while [[ $check -le 1 ]]; do
+			let j++
+			if [ $FORCECONVERT == true ]; then
+				if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
+					check=1
 				else
-					if find /downloads-ama/temp -iregex ".*/.*\.\(flac\\)" | read; then
-						check=1
-					else
-						check=2
-					fi
+					check=2
 				fi
-			done
-		fi		
+			else
+				if find /downloads-ama/temp -iregex ".*/.*\.\(flac\\)" | read; then
+					check=1
+				else
+					check=2
+				fi
+			fi
+		done
 	fi
 }
+
 
 AddReplaygainTags () {
 	if [ "$REPLAYGAIN" == "true" ]; then
