@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.45"
+	log "######################### SCRIPT VERSION 1.1.46"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -279,18 +279,8 @@ Configuration () {
 
 AddReplaygainTags () {
 	if [ "$REPLAYGAIN" == "true" ]; then
-		if find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp" | read; then
-			OLDIFS="$IFS"
-			IFS=$'\n'
-			replaygainlist=($(find "$LIBRARY" -mindepth 2 -maxdepth 2 -type d -newer "/config/scripts/temp"))
-			IFS="$OLDIFS"
-			for id in ${!replaygainlist[@]}; do
-				processid=$(( $id + 1 ))
-				folder="${replaygainlist[$id]}"
-				log "$logheader :: Adding Replaygain Tags using r128gain to: $folder"
-				r128gain -r -a -s -c $POSTPROCESSTHREADS "$folder"
-			done
-		fi
+		log "$logheader :: Adding Replaygain Tags using r128gain to files"
+		r128gain -r -a -s -c $POSTPROCESSTHREADS /downloads-ama/temp
 	fi
 }
 
