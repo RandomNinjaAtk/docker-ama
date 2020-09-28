@@ -1186,7 +1186,7 @@ Conversion () {
 					check=2
 				fi
 			else
-				if find /downloads-ama/temp -iregex ".*/.*\.\(flac\\)" | read; then
+				if find /downloads-ama/temp -iname "*.flac" | read; then
 					check=1
 				else
 					check=2
