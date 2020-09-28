@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.44"
+	log "######################### SCRIPT VERSION 1.1.45"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -80,8 +80,9 @@ Configuration () {
 		log "$TITLESHORT: Concurrent Downloads: $CONCURRENT_DOWNLOADS"
 		sed -i "s%CONCURRENT_DOWNLOADS%$CONCURRENT_DOWNLOADS%g" "/config/scripts/dlclient.py"
 	else
+		CONCURRENT_DOWNLOADS=1
 		log "WARNING: CONCURRENT_DOWNLOADS setting invalid, defaulting to: 1"
-		CONCURRENT_DOWNLOADS="1"
+		log "$TITLESHORT: Concurrent Downloads: $CONCURRENT_DOWNLOADS"
 		sed -i "s%CONCURRENT_DOWNLOADS%$CONCURRENT_DOWNLOADS%g" "/config/scripts/dlclient.py"
 	fi
 
@@ -194,6 +195,14 @@ Configuration () {
 		log "$TITLESHORT: Force Conversion To Requested Format: DISABLED"
 	fi
 
+	if [ ! -z "$POSTPROCESSTHREADS" ]; then
+		log "$TITLESHORT: Number of Post Process Threads: $POSTPROCESSTHREADS"
+	else
+		POSTPROCESSTHREADS=1
+		log "WARNING: POSTPROCESSTHREADS setting invalid, defaulting to: 1"
+		log "$TITLESHORT: Number of Post Process Threads: $POSTPROCESSTHREADS"
+	fi
+	
 	if [ ! -z "$REPLAYGAIN" ]; then
 		if [ "$REPLAYGAIN" == "true" ]; then
 			log "$TITLESHORT: Replaygain Tagging: ENABLED"
@@ -279,7 +288,7 @@ AddReplaygainTags () {
 				processid=$(( $id + 1 ))
 				folder="${replaygainlist[$id]}"
 				log "$logheader :: Adding Replaygain Tags using r128gain to: $folder"
-				r128gain -r -a -s -c $NumberConcurrentProcess "$folder"
+				r128gain -r -a -s -c $POSTPROCESSTHREADS "$folder"
 			done
 		fi
 	fi
@@ -692,34 +701,31 @@ AlbumFilter () {
 
 }
 
-Conversion () {
-	converttrackcount=$(find  /downloads-ama/temp/ -name "*.flac" | wc -l)
+FlacConvert () {
+	
+	fname="$1"
+	filename="$(basename "${fname%.flac}")"
 	if [ "$extension" == "m4a" ]; then
-			cover="/downloads-ama/temp/folder.jpg"
-			songtitle="null"
-			songalbum="null"
-			songartist="null"
-			songartistalbum="null"
-			songoriginalbpm="null"
-			songbpm="null"
-			songcopyright="null"
-			songtracknumber="null"
-			songtracktotal="null"
-			songdiscnumber="null"
-			songdisctotal="null"
-			songlyricrating="null"
-			songcompilation="null"
-			songdate="null"
-			songyear="null"
-			songgenre="null"
-			songcomposer="null"
-			songisrc="null"
-		fi
-	if [ "${FORMAT}" != "FLAC" ]; then
-		if find /downloads-ama/temp/ -name "*.flac" | read; then
-			log "$logheader :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $FORMAT (${BITRATE}))"
-			for fname in /downloads-ama/temp/*.flac; do
-				filename="$(basename "${fname%.flac}")"
+		cover="/downloads-ama/temp/folder.jpg"
+		songtitle="null"
+		songalbum="null"
+		songartist="null"
+		songartistalbum="null"
+		songoriginalbpm="null"
+		songbpm="null"
+		songcopyright="null"
+		songtracknumber="null"
+		songtracktotal="null"
+		songdiscnumber="null"
+		songdisctotal="null"
+		songlyricrating="null"
+		songcompilation="null"
+		songdate="null"
+		songyear="null"
+		songgenre="null"
+		songcomposer="null"
+		songisrc="null"
+	fi
 				if [ "$extension" == "m4a" ]; then					
 					tags="$(ffprobe -v quiet -print_format json -show_format "$fname" | jq -r '.[] | .tags')"
 					filelrc="${fname%.flac}.lrc"
@@ -920,21 +926,39 @@ Conversion () {
 					log "$logheader :: CONVERSION :: $filename :: Tagged"
 				fi
 				
-			done
+}
+
+MP3Convert () {
+	fname="$1"
+	filename="$(basename "${fname%.mp3}")"
+	if [ "$extension" == "m4a" ]; then
+		cover="/downloads-ama/temp/folder.jpg"
+		songtitle="null"
+		songalbum="null"
+		songartist="null"
+		songartistalbum="null"
+		songoriginalbpm="null"
+		songbpm="null"
+		songcopyright="null"
+		songtracknumber="null"
+		songtracktotal="null"
+		songdiscnumber="null"
+		songdisctotal="null"
+		songlyricrating="null"
+		songcompilation="null"
+		songdate="null"
+		songyear="null"
+		songgenre="null"
+		songcomposer="null"
+		songisrc="null"
+	fi
+	if [ "$extension" = "m4a" ]; then
+		if [ "${FORMAT}" == "ALAC" ]; then
+			origoptions="$options"
+			options="-c:a libfdk_aac -b:a ${BITRATE}k -movflags faststart"
 		fi
-		
-		if [ $FORCECONVERT == true ]; then
-			if [[ "${FORMAT}" != "MP3" && "${FORMAT}" != "FLAC" ]]; then
-				if find /downloads-ama/temp/ -name "*.mp3" | read; then
-					for fname in /downloads-ama/temp/*.mp3; do
-						filename="$(basename "${fname%.mp3}")"
-						if [ "$extension" = "m4a" ]; then
-							if [ "${FORMAT}" == "ALAC" ]; then
-								origoptions="$options"
-								options="-c:a libfdk_aac -b:a ${BITRATE}k -movflags faststart"
-							fi
-							tags="$(ffprobe -v quiet -print_format json -show_format "$fname" | jq -r '.[] | .tags')"
-							filelrc="${fname%.flac}.lrc"
+		tags="$(ffprobe -v quiet -print_format json -show_format "$fname" | jq -r '.[] | .tags')"
+		filelrc="${fname%.flac}.lrc"
 							songtitle="$(echo "$tags" | jq -r ".title")"
 							songalbum="$(echo "$tags" | jq -r ".album")"
 							songartist="$(echo "$tags" | jq -r ".artist")"
@@ -1134,11 +1158,49 @@ Conversion () {
 								--songartwork "$cover"
 							log "$logheader :: CONVERSION :: $filename :: Tagged"
 						fi
+}
+
+Conversion () {
+	converttrackcount=$(find  /downloads-ama/temp/ -name "*.flac" | wc -l)
+	if [ "${FORMAT}" != "FLAC" ]; then
+		if find /downloads-ama/temp/ -name "*.flac" | read; then
+			log "$logheader :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $FORMAT (${BITRATE}))"
+			for fname in /downloads-ama/temp/*.flac; do
+				FlacConvert "$fname" &		
+				N=$POSTPROCESSTHREADS
+				(( ++count % N == 0)) && wait
+			done
+		fi
+		
+		if [ $FORCECONVERT == true ]; then
+			if [[ "${FORMAT}" != "MP3" && "${FORMAT}" != "FLAC" ]]; then
+				if find /downloads-ama/temp/ -name "*.mp3" | read; then
+					for fname in /downloads-ama/temp/*.mp3; do
+						MP3Convert "$fname" &	
+						N=$POSTPROCESSTHREADS
+						(( ++count % N == 0)) && wait
 					done
 				fi
 			fi
-		fi
-		
+			check=1
+			let j=0
+			while [[ $check -le 1 ]]; do
+				let j++
+				if [ $FORCECONVERT == true ]; then
+					if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
+						check=1
+					else
+						check=2
+					fi
+				else
+					if find /downloads-ama/temp -iregex ".*/.*\.\(flac\\)" | read; then
+						check=1
+					else
+						check=2
+					fi
+				fi
+			done
+		fi		
 	fi
 }
 
