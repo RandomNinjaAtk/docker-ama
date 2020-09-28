@@ -45,6 +45,7 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-e FORMAT=FLAC` | SET TO: ALAC or FLAC or AAC or MP3 or OPUS |
 | `-e BITRATE=320` | FLAC -> OPUS/AAC/MP3 will be converted using this bitrate |
 | `-e FORCECONVERT=false` | true = enabled :: This will convert lossy MP3 to desired target format (exluding FLAC/ALAC, ALAC will convert to AAC) |
+| `-e POSTPROCESSTHREADS=1` | Controls number of threads used for Format conversion and replaygain tagging |
 | `-e ALBUM_TYPE_FILTER=COMPILE` | Filter Types: COMPILE, SINGLE, ALBUM, EP (this is a ", " separated list of Album Types to skip) |
 | `-e REQUIRE_QUALITY=false` | true = enabled :: Requires all downloaded files match target file extension (mp3 or flac) when enabled |
 | `-e REPLAYGAIN=true` | true = enabled :: Scans and analyzes files to add replaygain tags to song metadata |
@@ -85,6 +86,7 @@ docker create \
   -e FORMAT=FLAC \
   -e BITRATE=320 \
   -e FORCECONVERT=false \
+  -e POSTPROCESSTHREADS=1 \
   -e ALBUM_TYPE_FILTER=COMPILE \
   -e REQUIRE_QUALITY=false \
   -e REPLAYGAIN=true \
@@ -131,6 +133,7 @@ services:
       - FORMAT=FLAC
       - BITRATE=320
       - FORCECONVERT=false
+      - POSTPROCESSTHREADS=1
       - ALBUM_TYPE_FILTER=COMPILE
       - REQUIRE_QUALITY=false
       - IGNORE_ARTIST_WITHOUT_IMAGE=false
