@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.53"
+	log "######################### SCRIPT VERSION 1.1.54"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -261,8 +261,8 @@ Configuration () {
 				error=1
 			fi
 		else
-			log "ERROR: No Plex Library found containg path \"$folder\""
-			log "ERROR: Add \"$folder\" as a folder to a Plex Music Library or Disable NOTIFYPLEX"
+			log "ERROR: No Plex Library found containg path \"/downloads-ama\""
+			log "ERROR: Add \"/downloads-ama\" as a folder to a Plex Music Library or Disable NOTIFYPLEX"
 			error=1
 		fi
 	else
