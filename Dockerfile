@@ -1,19 +1,11 @@
-FROM lsiobase/alpine:3.11
+FROM lsiobase/alpine:3.12
 LABEL maintainer="RandomNinjaAtk"
 
 ENV TITLE="Automated Music Archiver (AMA)"
 ENV TITLESHORT="AMA"
-ENV VERSION="1.0.7"
+ENV VERSION="1.0.8"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
-	echo "**** install build packages ****" && \
-	apk add --no-cache --virtual=build-dependencies \
-		gcc \
-		g++ \
-		libffi-dev \
-		python3-dev \
-		git \
-		make && \
 	echo "************ install dependencies ************" && \
 	echo "************ install and upgrade packages ************" && \
 	apk update && \
@@ -24,6 +16,7 @@ RUN \
 		flac \
 		opus-tools \
 		ffmpeg \
+		eyed3 \
 		py3-pip \
 		python3 && \
 	echo "************ install python packages ************" && \
