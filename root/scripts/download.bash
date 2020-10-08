@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.55"
+	log "######################### SCRIPT VERSION 1.1.56"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -170,7 +170,7 @@ Configuration () {
 			log "$TITLESHORT: Download File Bitrate: $BITRATE"
 		elif [ "$FORMAT" = "AAC" ]; then
 			quality="FLAC"
-			options="-c:a libfdk_aac -b:a ${BITRATE}k -movflags faststart"
+			options="-c:a aac -b:a ${BITRATE}k -movflags faststart"
 			extension="m4a"
 			log "$TITLESHORT: Download File Bitrate: $BITRATE"
 		elif [ "$FORMAT" = "MP3" ]; then
@@ -603,10 +603,10 @@ ProcessArtist () {
 		
 		if python3 /config/scripts/dlclient.py -b $quality "$deezeralbumurl"; then
 			sleep 0.5
-			if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
+			if find /downloads-ama/temp -regex ".*/.*\.\(flac\|mp3\)" | read; then
 				DownloadQualityCheck
 			fi
-			if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
+			if find /downloads-ama/temp -regex ".*/.*\.\(flac\|mp3\)" | read; then
 				find /downloads-ama/temp -type d -exec chmod $FOLDERPERM {} \;
 				find /downloads-ama/temp -type f -exec chmod $FILEPERM {} \;
 				chown -R abc:abc /downloads-ama/temp
@@ -616,7 +616,7 @@ ProcessArtist () {
 			fi
 		fi
 		
-		file=$(find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | head -n 1)
+		file=$(find /downloads-ama/temp -regex ".*/.*\.\(flac\|mp3\)" | head -n 1)
 		if [ ! -z "$file" ]; then
 			artwork="$(dirname "$file")/folder.jpg"
 			if ffmpeg -y -i "$file" -c:v copy "$artwork" 2>/dev/null; then
@@ -890,7 +890,7 @@ FlacConvert () {
 	fi
 	
 	if [ "${FORMAT}" == "OPUS" ]; then
-		if opusenc --bitrate $BITRATE --hard-cbr "$fname" "${fname%.flac}.temp.$extension"; then
+		if opusenc --bitrate $BITRATE --hard-cbr --music "$fname" "${fname%.flac}.temp.$extension"; then
 			converterror=0
 		else
 			converterror=1
@@ -1123,7 +1123,7 @@ MP3Convert () {
 	fi
 						
 	if [ "${FORMAT}" == "OPUS" ]; then
-		if opusenc --bitrate $BITRATE --hard-cbr "$fname" "${fname%.mp3}.temp.$extension"; then
+		if opusenc --bitrate $BITRATE --hard-cbr --music "$fname" "${fname%.mp3}.temp.$extension"; then
 			converterror=0
 		else
 			converterror=1
@@ -1194,7 +1194,7 @@ MP3Convert () {
 Conversion () {
 	if [ "${FORMAT}" != "FLAC" ]; then
 		if [ $FORCECONVERT == true ]; then
-			converttrackcount=$(find /downloads-ama/temp/ -iregex ".*/.*\.\(flac\|mp3\)" | wc -l)
+			converttrackcount=$(find /downloads-ama/temp/ -regex ".*/.*\.\(flac\|mp3\)" | wc -l)
 		else
 			converttrackcount=$(find /downloads-ama/temp/ -name "*.flac" | wc -l)
 		fi
