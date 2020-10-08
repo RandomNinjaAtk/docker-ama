@@ -1,6 +1,4 @@
-ARG ffmpeg_tag=snapshot-ubuntu
-FROM jrottenberg/ffmpeg:${ffmpeg_tag} as ffmpeg
-FROM lsiobase/ubuntu:focal
+FROM lsiobase/alpine:3.11
 LABEL maintainer="RandomNinjaAtk"
 
 # Add files from ffmpeg
@@ -8,53 +6,44 @@ COPY --from=ffmpeg /usr/local/ /usr/local/
 
 ENV TITLE="Automated Music Archiver (AMA)"
 ENV TITLESHORT="AMA"
-ENV VERSION="1.0.6"
+ENV VERSION="1.0.7"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
+	echo "**** install build packages ****" && \
+	apk add --no-cache --virtual=build-dependencies \
+		gcc \
+		g++ \
+		libffi-dev \
+		python3-dev \
+		git \
+		make && \
 	echo "************ install dependencies ************" && \
 	echo "************ install and upgrade packages ************" && \
-	apt-get update && \
-	apt-get upgrade -y && \
-	apt-get install -y --no-install-recommends \
-		netbase \
+	apk update && \
+	apk upgrade && \
+	apk add --no-cache \
+		curl \
 		jq \
-		mp3val \
 		flac \
-		eyed3 \
 		opus-tools \
-		python3 \
-		python3-pip && \
-	rm -rf \
-		/tmp/* \
-		/var/lib/apt/lists/* \
-		/var/tmp/* && \
-	echo "************ install updated ffmpeg ************" && \
-	chgrp users /usr/local/bin/ffmpeg && \
- 	chgrp users /usr/local/bin/ffprobe && \
-	chmod g+x /usr/local/bin/ffmpeg && \
-	chmod g+x /usr/local/bin/ffprobe && \
+		ffmpeg \
+		py3-pip \
+		python3 && \
 	echo "************ install python packages ************" && \
-	python3 -m pip install --no-cache-dir -U \
+	pip3 install --no-cache-dir -U \
 		yq \
 		mutagen \
 		r128gain \
 		deemix && \
 	echo "************ setup dl client config directory ************" && \
 	echo "************ make directory ************" && \
-	mkdir -p "${XDG_CONFIG_HOME}/deemix"
- 
-RUN \
-	apt-get update -y && \
-	apt-get install -y --no-install-recommends \
-		libva-drm2 \
-		libva2 \
-		libgomp1 \
-		i965-va-driver && \
+	mkdir -p "${XDG_CONFIG_HOME}/deemix" && \
+	echo "************ clean up ************" && \
 	rm -rf \
-		/tmp/* \
-		/var/lib/apt/lists/* \
-		/var/tmp/*
+		/root/.cache \
+		/tmp/*
 
+    
 # copy local files
 COPY root/ /
 
