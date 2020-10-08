@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.54"
+	log "######################### SCRIPT VERSION 1.1.55"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -499,6 +499,7 @@ ProcessArtist () {
 		fi
 		albumtitle="$(echo "$albumdata" | jq -r ".title")"
 		sanatizedalbumtitle="$(echo "$albumtitle" | sed -e "s%[^[:alpha:][:digit:]._()' -]% %g" -e "s/  */ /g")"
+		albumimage="$(echo "$albumdata" | jq -r ".cover_xl")"
 		albumdate="$(echo "$albumdata" | jq -r ".release_date")"
 		albumtype="$(echo "$albumdata" | jq -r ".record_type")"
 		albumexplicit="$(echo "$albumdata" | jq -r ".explicit_lyrics")"
@@ -647,7 +648,22 @@ ProcessArtist () {
 				
 		Conversion
 		AddReplaygainTags
-
+		
+		if [ ! -f /downloads-ama/temp/temp-folder.jpg ]; then
+			albumimage=$(echo "$albumimage" | sed 's%80-0-0.jpg%100-0-0.jpg%g')
+			curl -s "$albumimage" -o /downloads-ama/temp/temp-folder.jpg
+		fi
+		
+		# remove low quality embedded iamge and replace with high quality local image
+		if [ -f /downloads-ama/temp/temp-folder.jpg ]; then
+			if [ -f /downloads-ama/temp/folder.jpg ]; then 
+				rm /downloads-ama/temp/folder.jpg
+				mv /downloads-ama/temp/temp-folder.jpg /downloads-ama/temp/folder.jpg
+			else
+				mv /downloads-ama/temp/temp-folder.jpg /downloads-ama/temp/folder.jpg
+			fi
+		fi
+		
 		if [ ! -d "$artistfolder" ]; then
 			mkdir -p "$artistfolder"
 			chmod $FOLDERPERM "$artistfolder"
