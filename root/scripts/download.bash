@@ -376,7 +376,7 @@ ArtistInfo () {
 	fi
 
 	if [ ! -f /config/cache/artists/$1/folder.jpg ]; then
-		artistpictureurl=$(cat "/config/cache/artists/$1/$1-info.json" | jq -r ".picture_xl" | sed 's%1000x1000%1800x1800%g' | sed 's%80-0-0.jpg%100-0-0.jpg%g')
+		artistpictureurl=$(cat "/config/cache/artists/$1/$1-info.json" | jq -r ".picture_xl" | sed 's%80-0-0.jpg%100-0-0.jpg%g')
 		curl -s "$artistpictureurl" -o /config/cache/artists/$1/folder.jpg
 	fi
 }
