@@ -8,7 +8,7 @@ COPY --from=ffmpeg /usr/local/ /usr/local/
 
 ENV TITLE="Automated Music Archiver (AMA)"
 ENV TITLESHORT="AMA"
-ENV VERSION="1.0.6"
+ENV VERSION="1.0.7"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
@@ -18,16 +18,16 @@ RUN \
 	apt-get install -y --no-install-recommends \
 		netbase \
 		jq \
-		mp3val \
 		flac \
 		eyed3 \
-		opus-tools \
 		python3 \
 		python3-pip && \
 	rm -rf \
 		/tmp/* \
 		/var/lib/apt/lists/* \
 		/var/tmp/* && \
+	echo "************ install updated opus-tools ************" && \
+	bash root/opus.bash  && \
 	echo "************ install updated ffmpeg ************" && \
 	chgrp users /usr/local/bin/ffmpeg && \
  	chgrp users /usr/local/bin/ffprobe && \
