@@ -1,9 +1,6 @@
 FROM lsiobase/alpine:3.11
 LABEL maintainer="RandomNinjaAtk"
 
-# Add files from ffmpeg
-COPY --from=ffmpeg /usr/local/ /usr/local/
-
 ENV TITLE="Automated Music Archiver (AMA)"
 ENV TITLESHORT="AMA"
 ENV VERSION="1.0.7"
