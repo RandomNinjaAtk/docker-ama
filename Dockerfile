@@ -26,8 +26,6 @@ RUN \
 		/tmp/* \
 		/var/lib/apt/lists/* \
 		/var/tmp/* && \
-	echo "************ install updated opus-tools ************" && \
-	bash /root/opus.bash  && \
 	echo "************ install updated ffmpeg ************" && \
 	chgrp users /usr/local/bin/ffmpeg && \
  	chgrp users /usr/local/bin/ffprobe && \
@@ -57,6 +55,10 @@ RUN \
 
 # copy local files
 COPY root/ /
+
+RUN \
+	echo "************ install updated opus-tools ************" && \
+	bash /opus.bash
 
 # set work directory
 WORKDIR /config
