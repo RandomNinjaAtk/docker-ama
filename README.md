@@ -42,6 +42,7 @@ Container images are configured using parameters passed at runtime (such as thos
 | `-e RELATED_COUNT=20` | Maximum number of related artists to import per artist (20 is max) |
 | `-e FAN_COUNT=1000000` | Minimum number of fans required for processing |
 | `-e CONCURRENT_DOWNLOADS=1` | Controls download concurrency |
+| `-e EMBEDDED_COVER_QUALITY=80` | Controls the quality of the cover image compression in percentage, 100 = no compression |
 | `-e FORMAT=FLAC` | SET TO: ALAC or FLAC or AAC or MP3 or OPUS |
 | `-e BITRATE=320` | FLAC -> OPUS/AAC/MP3 will be converted using this bitrate |
 | `-e FORCECONVERT=false` | true = enabled :: This will convert lossy MP3 to desired target format (exluding FLAC/ALAC, ALAC will convert to AAC) |
@@ -83,6 +84,7 @@ docker create \
   -e RELATED_COUNT=20 \
   -e FAN_COUNT=1000000 \
   -e CONCURRENT_DOWNLOADS=1 \
+  -e EMBEDDED_COVER_QUALITY=80 \
   -e FORMAT=FLAC \
   -e BITRATE=320 \
   -e FORCECONVERT=false \
@@ -130,6 +132,7 @@ services:
       - RELATED_COUNT=20
       - FAN_COUNT=1000000
       - CONCURRENT_DOWNLOADS=1
+      - EMBEDDED_COVER_QUALITY=80
       - FORMAT=FLAC
       - BITRATE=320
       - FORCECONVERT=false
