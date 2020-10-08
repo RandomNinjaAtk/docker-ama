@@ -85,7 +85,17 @@ Configuration () {
 		log "$TITLESHORT: Concurrent Downloads: $CONCURRENT_DOWNLOADS"
 		sed -i "s%CONCURRENT_DOWNLOADS%$CONCURRENT_DOWNLOADS%g" "/config/scripts/dlclient.py"
 	fi
-
+	
+	if [ ! -z "$EMBEDDED_COVER_QUALITY" ]; then
+		log "$TITLESHORT: Embedded Cover Quality: $EMBEDDED_COVER_QUALITY (%)"
+		sed -i "s%EMBEDDED_COVER_QUALITY%$EMBEDDED_COVER_QUALITY%g" "/config/scripts/dlclient.py"
+	else
+		EMBEDDED_COVER_QUALITY=80
+		log "WARNING: EMBEDDED_COVER_QUALITY setting invalid, defaulting to: 80"
+		log "$TITLESHORT: Embedded Cover Quality: $EMBEDDED_COVER_QUALITY (%)"
+		sed -i "s%EMBEDDED_COVER_QUALITY%$EMBEDDED_COVER_QUALITY%g" "/config/scripts/dlclient.py"
+	fi
+	
 	if [ -z "$REQUIRE_QUALITY" ]; then
 		log "WARNING: REQUIRE_QUALITY setting invalid, defaulting to: false"
 		REQUIRE_QUALITY="false"
