@@ -25,8 +25,8 @@ apt -y purge opus* > /dev/null 2>&1 && apt -y purge libopus-dev > /dev/null 2>&1
 
 TEMP_FOLDER="$(mktemp -d)"
 
-# Opusfile 0.11
-curl -Ls https://downloads.xiph.org/releases/opus/opusfile-0.11.tar.gz | tar xz -C "$TEMP_FOLDER"
+# Opusfile 0.12
+curl -Ls https://downloads.xiph.org/releases/opus/opusfile-0.12.tar.gz | tar xz -C "$TEMP_FOLDER"
 
 # Opus 1.3.1
 curl -Ls https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz | tar xz -C "$TEMP_FOLDER"
@@ -44,7 +44,7 @@ cd "$TEMP_FOLDER"/opus-1.3.1 || exit
 ./configure
 make && make install
 
-cd "$TEMP_FOLDER"/opusfile-0.11 || exit
+cd "$TEMP_FOLDER"/opusfile-0.12 || exit
 
 ./configure
 make && make install
