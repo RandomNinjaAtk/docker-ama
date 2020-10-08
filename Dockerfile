@@ -27,7 +27,7 @@ RUN \
 		/var/lib/apt/lists/* \
 		/var/tmp/* && \
 	echo "************ install updated opus-tools ************" && \
-	bash root/opus.bash  && \
+	bash /root/opus.bash  && \
 	echo "************ install updated ffmpeg ************" && \
 	chgrp users /usr/local/bin/ffmpeg && \
  	chgrp users /usr/local/bin/ffprobe && \
