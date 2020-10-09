@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.57"
+	log "######################### SCRIPT VERSION 1.1.58"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -466,7 +466,7 @@ ProcessArtist () {
 		if [ ! -f "$artistfolder/folder.jpg" ]; then
 			artistimage="/config/cache/artists/$albumartistid/folder.jpg"
 			if [ -f "$artistimage" ]; then
-				blankartistmd5="ec1853a066b6f5f94b55a14fb9e34c97"
+				blankartistmd5="564618829c4dd579323fbf78388c260f"
 				md5="$(md5sum "$artistimage")"
 				md5clean="$(echo "$md5" | cut -f1 -d " ")"
 				if [ "$md5clean" == "$blankartistmd5" ]; then
