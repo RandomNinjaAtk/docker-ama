@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.58"
+	log "######################### SCRIPT VERSION 1.1.59"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -601,19 +601,19 @@ ProcessArtist () {
 		# add plex ignore file temporarily
 		touch /downloads-ama/temp/.plexignore
 		
-		if python3 /config/scripts/dlclient.py -b $quality "$deezeralbumurl"; then
-			sleep 0.5
-			if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
-				DownloadQualityCheck
-			fi
-			if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
-				find /downloads-ama/temp -type d -exec chmod $FOLDERPERM {} \;
-				find /downloads-ama/temp -type f -exec chmod $FILEPERM {} \;
-				chown -R abc:abc /downloads-ama/temp
-			else
-				log "$logheader :: ERROR :: No files found"
-				continue
-			fi
+		python3 /config/scripts/dlclient.py -b $quality "$deezeralbumurl"
+		
+		if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
+			DownloadQualityCheck
+		fi
+		
+		if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
+			find /downloads-ama/temp -type d -exec chmod $FOLDERPERM {} \;
+			find /downloads-ama/temp -type f -exec chmod $FILEPERM {} \;
+			chown -R abc:abc /downloads-ama/temp
+		else
+			log "$logheader :: ERROR :: No files found"
+			continue
 		fi
 		
 		file=$(find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | head -n 1)
