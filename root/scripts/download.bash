@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.60"
+	log "######################### SCRIPT VERSION 1.1.61"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -324,6 +324,35 @@ LidarrListImport () {
 				echo "$lidarrartistinfo" > /config/cache/artists/$lidarrdeezerid/$lidarrdeezerid-lidarr-info.json
 			fi
 		done
+		
+		# fallback to musicbrainz db for link
+		if [ -z "$deezerartisturl" ]; then
+			mbjson=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
+			sleep 1
+			wantitalbumartistdeezerid=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))
+			for url in ${!wantitalbumartistdeezerid[@]}; do
+				deezerid="${wantitalbumartistdeezerid[$url]}"
+				lidarrdeezerid=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
+				if [ -f "/config/list/$lidarrdeezerid" ]; then
+				   rm "/config/list/$lidarrdeezerid"
+				fi
+				if [ -f "/config/list/$lidarrdeezerid-related" ]; then
+				   rm "/config/list/$lidarrdeezerid-related"
+				fi
+				if [ -f "/config/list/$lidarrdeezerid-complete" ]; then
+				   rm "/config/list/$lidarrdeezerid-complete"
+				fi
+				if [ ! -f "/config/list/$lidarrdeezerid-lidarr" ]; then
+					echo -n "$mbid" > "/config/list/$lidarrdeezerid-lidarr"
+				fi
+				if [ ! -d /config/cache/artists/$lidarrdeezerid ]; then
+					mkdir -p /config/cache/artists/$lidarrdeezerid
+				fi
+				if [ ! -f /config/cache/artists/$lidarrdeezerid/$lidarrdeezerid-lidarr-info.json ]; then
+					echo "$lidarrartistinfo" > /config/cache/artists/$lidarrdeezerid/$lidarrdeezerid-lidarr-info.json
+				fi
+			done		
+		fi
 	done
 }
 
