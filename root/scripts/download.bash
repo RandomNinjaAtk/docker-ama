@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE"
-	log "######################### SCRIPT VERSION 1.1.59"
+	log "######################### SCRIPT VERSION 1.1.60"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -602,7 +602,7 @@ ProcessArtist () {
 		touch /downloads-ama/temp/.plexignore
 		
 		python3 /config/scripts/dlclient.py -b $quality "$deezeralbumurl"
-		
+		rm -rf /tmp/deemix-imgs/*
 		if find /downloads-ama/temp -iregex ".*/.*\.\(flac\|mp3\)" | read; then
 			DownloadQualityCheck
 		fi
