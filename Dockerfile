@@ -8,7 +8,7 @@ COPY --from=ffmpeg /usr/local/ /usr/local/
 
 ENV TITLE="Automated Music Archiver (AMA)"
 ENV TITLESHORT="AMA"
-ENV VERSION="1.0.8"
+ENV VERSION="1.0.9"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
