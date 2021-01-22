@@ -22,8 +22,8 @@ class cli(deemix):
         self.set.settings["saveArtworkArtist"] = True
         self.set.settings["queueConcurrency"] = CONCURRENT_DOWNLOADS
         self.set.settings["jpegImageQuality"] = EMBEDDED_COVER_QUALITY
-        self.set.settings["embeddedArtworkSize"] = 1000
-        self.set.settings["localArtworkSize"] = 1000
+        self.set.settings["embeddedArtworkSize"] = 1200
+        self.set.settings["localArtworkSize"] = 1200
         self.set.settings["removeAlbumVersion"] = True
         self.set.settings["syncedLyrics"] = True
         self.set.settings["coverImageTemplate"] = "folder"
@@ -31,17 +31,20 @@ class cli(deemix):
         self.set.settings["tags"]["trackTotal"] = True
         self.set.settings["tags"]["discTotal"] = True
         self.set.settings["tags"]["explicit"] = True
+        self.set.settings["tags"]["date"] = False
+        self.set.settings["tags"]["barcode"] = False
         self.set.settings["tags"]["length"] = False
+        self.set.settings["tags"]["isrc"] = False
         self.set.settings["tags"]["lyrics"] = True
         self.set.settings["tags"]["syncedLyrics"] = True
-        self.set.settings["tags"]["involvedPeople"] = True
-        self.set.settings["tags"]["copyright"] = True
-        self.set.settings["tags"]["composer"] = True
+        self.set.settings["tags"]["involvedPeople"] = False
+        self.set.settings["tags"]["copyright"] = False
+        self.set.settings["tags"]["composer"] = False
+        self.set.settings["tags"]["label"] = False
         self.set.settings["tags"]["savePlaylistAsCompilation"] = True
         self.set.settings["removeDuplicateArtists"] = True
-        self.set.settings["featuredToTitle"] = "0"
         self.set.settings["tags"]["saveID3v1"] = False
-        self.set.settings["tags"]["multiArtistSeparator"] = "andFeat"
+        self.set.settings["tags"]["multiArtistSeparator"] = "default"
         self.set.settings["tags"]["singleAlbumArtist"] = True
         self.set.saveSettings()
 
