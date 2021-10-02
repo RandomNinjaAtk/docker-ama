@@ -33,12 +33,5 @@ RUN \
 	echo "************ make directory ************" && \
 	mkdir -p "${XDG_CONFIG_HOME}/deemix"
  
-
-# copy local files
-COPY root/ /
-
 # set work directory
 WORKDIR /config
-
-# ports and volumes
-VOLUME /config
