@@ -5,7 +5,7 @@ from deemix.settings import save as saveSettings
 
 
 newsettings = {
-	"downloadLocation": "/downloads-amd/amd/dlclient",
+	"downloadLocation": "/downloads-ama/temp",
 	"tracknameTemplate": "%discnumber%%tracknumber% - %title% %explicit%",
 	"albumTracknameTemplate": "%discnumber%%tracknumber% - %title% %explicit%",
 	"artistNameTemplate": "%artist% (%artist_id%)",
