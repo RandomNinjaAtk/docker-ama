@@ -13,7 +13,7 @@ Configuration () {
 	log ""
 	log ""
 	sleep 2
-	log "######################### $TITLE"
+	log "######################### $TITLE - Musicbrainz"
 	log "######################### SCRIPT VERSION 1.1.61"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
