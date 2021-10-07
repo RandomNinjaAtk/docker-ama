@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE - Musicbrainz"
-	log "######################### SCRIPT VERSION 1.1.64"
+	log "######################### SCRIPT VERSION 1.1.65"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -771,7 +771,8 @@ ProcessArtist () {
 		ReleaseID=""
 		ReleaseGroupID=""
 		log "$logheader :: Searching for Musicbrainz release group..."
-		QueryForReleaseID=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/url?query=url_ancestor:%22https://www.deezer.com/album/$albumid%22%20OR%20url_ancestor:%22http://www.deezer.com/album/$albumid%22&fmt=json")
+		
+		QueryForReleaseID=$(curl -s -A "$agent" "http://musicbrainz.org/ws/2/url/?query=url:htt*deezer.com*lbum/$albumid&fmt=json")
 		ReleaseID=$(echo "$QueryForReleaseID" | jq -r '.urls[]."relation-list"[].relations[].release.id' | head -n 1)
 		if [ ! -z $ReleaseID ]; then
 			sleep 1.5
