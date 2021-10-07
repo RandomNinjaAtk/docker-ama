@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE - Musicbrainz"
-	log "######################### SCRIPT VERSION 1.1.62"
+	log "######################### SCRIPT VERSION 1.1.63"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -447,8 +447,8 @@ ArtistInfo () {
 			artist_born="$(echo "$artist_data" | jq -r '."life-span".begin')"
 			gender="$(echo "$artist_data" | jq -r ".gender")"
 			matched_id=true
-			if [ -f "/config/logs/musicbrainz/$1" ]; then
-				rm "/config/logs/musicbrainz/$1"
+			if [ -f "/config/logs/musicbrainz/$1.txt" ]; then
+				rm "/config/logs/musicbrainz/$1.txt"
 			fi
 		else
 			matched_id=false
@@ -457,13 +457,13 @@ ArtistInfo () {
 			if [ ! -d "/config/logs/musicbrainz" ]; then
 				mkdir -p "/config/logs/musicbrainz"
 			fi
-			if [ ! -f "/config/logs/musicbrainz/$1" ]; then
-				echo "https://deezer.com/artist/$1 :: Add artist link to musicbrainz artist (https://musicbrainz.org/)" > "/config/logs/musicbrainz/$1"
+			if [ ! -f "/config/logs/musicbrainz/$1.txt" ]; then
+				echo "https://deezer.com/artist/$1 :: Add artist link to musicbrainz artist (https://musicbrainz.org/)" > "/config/logs/musicbrainz/$1.txt"
 			fi
 			return
 		fi
 	fi
-	if [ ! -f "/config/logs/musicbrainz/$1" ]; then
+	if [ ! -f "/config/logs/musicbrainz/$1.txt" ]; then
 		musicbrainz_main_artist_id="$(cat /config/cache/artists/$1/$1-musicbrainz.txt)"
 		if [ ! -f /config/cache/artists/$1/$1-musicbrainz-data.json ]; then
 			artist_data=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/$musicbrainz_main_artist_id?inc=genres&fmt=json")
@@ -581,7 +581,7 @@ ProcessArtist () {
 				echo "$artist_data" >> /config/cache/artists/$albumartistid/$albumartistid-musicbrainz-data.json
 			fi
 		fi
-		if [ ! -f "/config/logs/musicbrainz/$albumartistid" ] && [ -f "/config/cache/artists/$albumartistid/$albumartistid-musicbrainz.txt" ]; then
+		if [ ! -f "/config/logs/musicbrainz/$albumartistid.txt" ] && [ -f "/config/cache/artists/$albumartistid/$albumartistid-musicbrainz.txt" ]; then
 			musicbrainz_main_artist_id="$(cat /config/cache/artists/$albumartistid/$albumartistid-musicbrainz.txt)"
 			artist_data="$(cat /config/cache/artists/$albumartistid/$albumartistid-musicbrainz-data.json)"
 			artist_biography="null"
@@ -1548,20 +1548,24 @@ ProcessArtistRelated () {
 	for id in ${!relatedprocesslist[@]}; do
 		artistnumber=$(( $id + 1 ))
 		artistid="${relatedprocesslist[$id]}"
-		if [ -f  /config/cache/artists/$artistid/$artistid-related.json ]; then
-			artistrelatedfile=$(cat  /config/cache/artists/$artistid/$artistid-related.json)
-			artistrelatedcount="$(echo "$artistrelatedfile" | jq -r ".total")"
-			if [ "$artistrelatedcount" -gt "0" ]; then
-				artistrelatedidlist=($(echo "$artistrelatedfile" | jq ".data | sort_by(.nb_fan) | reverse | .[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT))
-				artistrelatedidlistcount=$(echo "$artistrelatedfile" | jq ".data | sort_by(.nb_fan) | reverse | .[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT | wc -l)
-				for id in ${!artistrelatedidlist[@]}; do
-					relatedartistnumber=$(( $id + 1 ))
-					artistrelatedid="${artistrelatedidlist[$id]}"
-					if [ ! -f "/config/list/$artistrelatedid-related" ]; then
-						touch "/config/list/$artistrelatedid-related"
-					fi
-				done
+		if [ ! -f /config/list/$artistid-complete ]; then
+			if [ -f  /config/cache/artists/$artistid/$artistid-related.json ]; then
+				artistrelatedfile=$(cat  /config/cache/artists/$artistid/$artistid-related.json)
+				artistrelatedcount="$(echo "$artistrelatedfile" | jq -r ".total")"
+				if [ "$artistrelatedcount" -gt "0" ]; then
+					artistrelatedidlist=($(echo "$artistrelatedfile" | jq ".data | sort_by(.nb_fan) | reverse | .[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT))
+					artistrelatedidlistcount=$(echo "$artistrelatedfile" | jq ".data | sort_by(.nb_fan) | reverse | .[] | select(.nb_fan >= $FAN_COUNT) | .id" | head -n $RELATED_COUNT | wc -l)
+					for id in ${!artistrelatedidlist[@]}; do
+						relatedartistnumber=$(( $id + 1 ))
+						artistrelatedid="${artistrelatedidlist[$id]}"
+						if [ ! -f "/config/list/$artistrelatedid-related" ]; then
+							touch "/config/list/$artistrelatedid-related"
+						fi
+					done
+				fi
 			fi
+		else
+			continue
 		fi
 	done
 }
