@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE - Musicbrainz"
-	log "######################### SCRIPT VERSION 1.1.61"
+	log "######################### SCRIPT VERSION 1.1.62"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -447,6 +447,9 @@ ArtistInfo () {
 			artist_born="$(echo "$artist_data" | jq -r '."life-span".begin')"
 			gender="$(echo "$artist_data" | jq -r ".gender")"
 			matched_id=true
+			if [ -f "/config/logs/musicbrainz/$1" ]; then
+				rm "/config/logs/musicbrainz/$1"
+			fi
 		else
 			matched_id=false
 			log "$logheader :: ERROR :: Cannot Find MusicBrainz Artist Match... :: SKIPPING"
@@ -454,7 +457,9 @@ ArtistInfo () {
 			if [ ! -d "/config/logs/musicbrainz" ]; then
 				mkdir -p "/config/logs/musicbrainz"
 			fi
-			touch "/config/logs/musicbrainz/$1"
+			if [ ! -f "/config/logs/musicbrainz/$1" ]; then
+				echo "https://deezer.com/artist/$1 :: Add artist link to musicbrainz artist (https://musicbrainz.org/)" > "/config/logs/musicbrainz/$1"
+			fi
 			return
 		fi
 	fi
@@ -503,7 +508,27 @@ ProcessArtistList () {
 			albumids=($(echo "$albumlistdata" | jq -r "sort_by(.nb_tracks) | sort_by(.explicit_lyrics and .nb_tracks) | reverse | .[] | select(.artist.id==$artistid) | .id"))
 		fi
 		log "$logheader :: Downloading $albumcount Albums"
+		
+		# skip if marked completed, unless it's friday to check for new tunes...
+		if [ -f "/config/logs/completed_artists/$artistid" ]; then
+			# check if its friday
+			if [ $(date +%w) = 5 ]; then
+				rm "/config/logs/completed_artists/$artistid"
+			else
+				log "$logheader :: Artist previously processed, skipping..."
+				continue
+			fi
+		fi
+
 		ProcessArtist
+
+		log "$logheader :: Marking artist as complete"
+		if [ ! -d "/config/logs/completed_artists" ]; then
+			mkdir -p /config/logs/completed_artists
+		fi
+		if [ ! -f "/config/logs/completed_artists/$artistid" ]; then
+			touch "/config/logs/completed_artists/$artistid"
+		fi
 	done
 }
 
@@ -529,6 +554,11 @@ ProcessArtist () {
 				log "$logheader :: Album Artist found in wanted list (/config/list/$albumartistid), $albumartistid will be processed later, skipping..."
 				logheader="$logheaderstart"
 				continue
+			else
+				if [ "$COMPLETE_MY_ARTISTS" = "true" ]; then
+					touch /config/list/$albumartistid-complete
+					log "$logheader :: Adding artist to complete my artist list"
+				fi
 			fi
 		elif [ -f /config/logs/downloads/$albumid ]; then
 			log "$logheader :: Album ($albumid) Already Downloaded..."
@@ -576,12 +606,10 @@ ProcessArtist () {
 			albumartistmbzid="$(cat /config/cache/artists/$albumartistid/$albumartistid-musicbrainz.txt)"
 			log "$logheader :: Using Musicbrainz Album Artist Name & Musicbrainz ID: $albumartistmbzid"
 			musicbrainzartistname="$(echo "$artist_data" | jq -r '.name')"
-			#TagFix
 		elif [ $albumartistid == 5080 ]; then
 			albumartistmbzid="89ad4ac3-39f7-470e-963a-56509c546377"
 			musicbrainzartistname="Various Artists"
 			log "$logheader :: Using Musicbrainz Album Artist Name & Musicbrainz ID: $albumartistmbzid"
-			#TagFix
 		else
 			albumartistmbzid=""
 		fi
@@ -1538,20 +1566,6 @@ ProcessArtistRelated () {
 	done
 }
 
-AddMissingArtists () {
-	completeartistlist=($(find $LIBRARY -maxdepth 1 -mindepth 1 | grep -o '(*[[:digit:]]*)' | sed 's/(//g;s/)//g' | sort -u))
-	for id in ${!completeartistlist[@]}; do
-		completeprocessid=$(( $id + 1 ))
-		completeartistid="${completeartistlist[$id]}"
-		if ls /config/list | cut -f2 -d "/" | cut -f1 -d "-" | sort -u | grep -i "$completeartistid" | read; then
-			continue
-		fi
-		if [ ! -f "/config/list/$completeartistid-complete" ]; then
-			touch "/config/list/$completeartistid-complete"
-		fi
-	done
-}
-
 PlexNotification () {
 
 	if [ "$NOTIFYPLEX" == "true" ]; then
@@ -1663,7 +1677,7 @@ TagFix () {
 
 log () {
     m_time=`date "+%F %T"`
-    echo $m_time" "$1
+    echo $m_time ::" "$1
 }
 
 Main () {
@@ -1672,9 +1686,6 @@ Main () {
 	if [ "$LIDARR_LIST_IMPORT" == "true" ] || [ "$COMPLETE_MY_ARTISTS" == "true" ] || [ "$RELATED_ARTIST" == "true" ]; then
 		if [ "$LIDARR_LIST_IMPORT" == "true" ]; then
 			LidarrListImport
-		fi
-		if [ "$COMPLETE_MY_ARTISTS" == "true" ]; then
-			AddMissingArtists
 		fi
 		if  [ "$RELATED_ARTIST" == "true" ]; then
 			ProcessArtistRelated
