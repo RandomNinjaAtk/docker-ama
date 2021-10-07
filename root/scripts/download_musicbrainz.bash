@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE - Musicbrainz"
-	log "######################### SCRIPT VERSION 1.1.63"
+	log "######################### SCRIPT VERSION 1.1.64"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -411,41 +411,12 @@ ArtistInfo () {
 
 	if [ ! -f "/config/cache/artists/$1/$1-musicbrainz.txt" ]; then
 		count="0"
-		query_data=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/url?query=url_ancestor:%22https://www.deezer.com/artist/$1%22%20OR%20url_ancestor:%22http://www.deezer.com/artist/$1%22&fmt=json")
+		query_data=$(curl -s -A "$agent" "http://musicbrainz.org/ws/2/url/?query=url:htt*deezer.com*rtist/$1&fmt=json")
 		count=$(echo "$query_data" | jq -r ".count")
-		if [ "$count" == "0" ]; then
-			sleep 1.5
-			query_data=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/url?query=url_ancestor:%22https://www.deezer.com/artist/$1%22%20OR%20url_ancestor:%22http://www.deezer.com/artist/$1%22&fmt=json")
-			count=$(echo "$query_data" | jq -r ".count")
-			sleep 1.5
-		fi
 		
-		if [ "$count" == "0" ]; then
-			query_data=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/url?query=url_ancestor:%22https://www.deezer.com/artist/$1%22%20OR%20url_ancestor:%22http://www.deezer.com/artist/$1%22&fmt=json")
-			count=$(echo "$query_data" | jq -r ".count")
-			sleep 1.5
-		fi
-		
-		if [ "$count" == "0" ]; then
-			query_data=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/url?query=url_ancestor:%22https://www.deezer.com/artist/$1%22%20OR%20url_ancestor:%22http://www.deezer.com/artist/$1%22&fmt=json")
-			count=$(echo "$query_data" | jq -r ".count")
-			sleep 1.5
-		fi
-		
-		if [ "$count" == "0" ]; then
-			query_data=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/url?query=url_ancestor:%22https://www.deezer.com/artist/$1%22%20OR%20url_ancestor:%22http://www.deezer.com/artist/$1%22&fmt=json")
-			count=$(echo "$query_data" | jq -r ".count")
-		fi
-	
 		if [ "$count" != "0" ]; then
 			musicbrainz_main_artist_id=$(echo "$query_data" | jq -r '.urls[]."relation-list"[].relations[].artist.id' | head -n 1)
-			sleep 1.5
-			artist_data=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/url?query=url_ancestor:%22https://www.deezer.com/artist/$1%22%20OR%20url_ancestor:%22http://www.deezer.com/artist/$1%22&fmt=json")
 			echo "$musicbrainz_main_artist_id" >> /config/cache/artists/$1/$1-musicbrainz.txt
-			artist_sort_name="$(echo "$artist_data" | jq -r '."sort-name"')"
-			artist_formed="$(echo "$artist_data" | jq -r '."begin-area".name')"
-			artist_born="$(echo "$artist_data" | jq -r '."life-span".begin')"
-			gender="$(echo "$artist_data" | jq -r ".gender")"
 			matched_id=true
 			if [ -f "/config/logs/musicbrainz/$1.txt" ]; then
 				rm "/config/logs/musicbrainz/$1.txt"
