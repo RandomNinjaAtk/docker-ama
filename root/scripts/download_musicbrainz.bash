@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE - Musicbrainz"
-	log "######################### SCRIPT VERSION 1.1.65"
+	log "######################### SCRIPT VERSION 1.1.66"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -493,12 +493,16 @@ ProcessArtistList () {
 
 		ProcessArtist
 
-		log "$logheader :: Marking artist as complete"
-		if [ ! -d "/config/logs/completed_artists" ]; then
-			mkdir -p /config/logs/completed_artists
-		fi
-		if [ ! -f "/config/logs/completed_artists/$artistid" ]; then
-			touch "/config/logs/completed_artists/$artistid"
+		if [ -d "$artistfolder" ]; then
+			log "$logheader :: Marking artist as complete"
+			if [ ! -d "/config/logs/completed_artists" ]; then
+				mkdir -p /config/logs/completed_artists
+			fi
+			if [ ! -f "/config/logs/completed_artists/$artistid" ]; then
+				touch "/config/logs/completed_artists/$artistid"
+			fi
+		elif [ -f "/config/logs/completed_artists/$artistid" ]; then
+			rm "/config/logs/completed_artists/$artistid"
 		fi
 	done
 }
