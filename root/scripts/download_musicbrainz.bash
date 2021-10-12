@@ -14,7 +14,7 @@ Configuration () {
 	log ""
 	sleep 2
 	log "######################### $TITLE - Musicbrainz"
-	log "######################### SCRIPT VERSION 1.1.66"
+	log "######################### SCRIPT VERSION 1.1.67"
 	log "######################### DOCKER VERSION $VERSION"
 	log "######################### CONFIGURATION VERIFICATION"
 	error=0
@@ -373,7 +373,11 @@ ArtistInfo () {
 		fi
 		rm /config/cache/cache-info-check
 	fi
+	
+	artistname="$(cat "/config/cache/artists/$artistid/$artistid-info.json" | jq -r ".name")"
+	sanatizedartistname="$(echo "$artistname" | sed -e "s%[^[:alpha:][:digit:]._()' -]% %g" -e "s/  */ /g")"
 
+	
 	if [ ! -f /config/cache/artists/$1/$1-info.json ]; then
 		if curl -sL --fail "https://api.deezer.com/artist/$1" -o /config/cache/$1-info.json; then
 			if [ ! -d /config/cache/artists/$1 ]; then
@@ -429,12 +433,12 @@ ArtistInfo () {
 				mkdir -p "/config/logs/musicbrainz"
 			fi
 			if [ ! -f "/config/logs/musicbrainz/$1.txt" ]; then
-				echo "https://deezer.com/artist/$1 :: Add artist link to musicbrainz artist (https://musicbrainz.org/)" > "/config/logs/musicbrainz/$1.txt"
+				echo "https://deezer.com/artist/$1 :: Add artist link to musicbrainz artist (https://musicbrainz.org/)" > "/config/logs/musicbrainz/$1 ($sanatizedartistname).txt"
 			fi
 			return
 		fi
 	fi
-	if [ ! -f "/config/logs/musicbrainz/$1.txt" ]; then
+	if [ ! -f "/config/logs/musicbrainz/$1 ($sanatizedartistname).txt" ]; then
 		musicbrainz_main_artist_id="$(cat /config/cache/artists/$1/$1-musicbrainz.txt)"
 		if [ ! -f /config/cache/artists/$1/$1-musicbrainz-data.json ]; then
 			artist_data=$(curl -s -A "$agent" "https://musicbrainz.org/ws/2/artist/$musicbrainz_main_artist_id?inc=genres&fmt=json")
@@ -556,7 +560,7 @@ ProcessArtist () {
 				echo "$artist_data" >> /config/cache/artists/$albumartistid/$albumartistid-musicbrainz-data.json
 			fi
 		fi
-		if [ ! -f "/config/logs/musicbrainz/$albumartistid.txt" ] && [ -f "/config/cache/artists/$albumartistid/$albumartistid-musicbrainz.txt" ]; then
+		if [ ! -f "/config/logs/musicbrainz/$albumartistid ($sanatizedartistname).txt" ] && [ -f "/config/cache/artists/$albumartistid/$albumartistid-musicbrainz.txt" ]; then
 			musicbrainz_main_artist_id="$(cat /config/cache/artists/$albumartistid/$albumartistid-musicbrainz.txt)"
 			artist_data="$(cat /config/cache/artists/$albumartistid/$albumartistid-musicbrainz-data.json)"
 			artist_biography="null"
