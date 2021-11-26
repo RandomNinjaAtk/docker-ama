@@ -3,7 +3,7 @@ LABEL maintainer="RandomNinjaAtk"
 
 ENV TITLE="Automated Music Archiver (AMA)"
 ENV TITLESHORT="AMA"
-ENV VERSION="1.0.92"
+ENV VERSION="1.0.93"
 ENV XDG_CONFIG_HOME="/config/deemix/xdg"
 RUN \
 	echo "************ install dependencies ************" && \
