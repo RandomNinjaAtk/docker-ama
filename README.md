@@ -1,18 +1,12 @@
 # Deprecated
 
 This repository is now deprecated, will no longer be updated and is being archived. Please visit the new project/replacement:
-* [https://github.com/linuxserver/docker-lidarr-extended](https://github.com/RandomNinjaAtk/docker-lidarr-extended)
+* [https://github.com/RandomNinjaAtk/docker-lidarr-extended](https://github.com/RandomNinjaAtk/docker-lidarr-extended)
 
 <br />
 <br />
 
 # AMA - Automated Music Archiver
-[![Docker Build](https://img.shields.io/docker/cloud/automated/randomninjaatk/ama?style=flat-square)](https://hub.docker.com/r/randomninjaatk/ama)
-[![Docker Pulls](https://img.shields.io/docker/pulls/randomninjaatk/ama?style=flat-square)](https://hub.docker.com/r/randomninjaatk/ama)
-[![Docker Stars](https://img.shields.io/docker/stars/randomninjaatk/ama?style=flat-square)](https://hub.docker.com/r/randomninjaatk/ama)
-[![Docker Hub](https://img.shields.io/badge/Open%20On-DockerHub-blue?style=flat-square)](https://hub.docker.com/r/randomninjaatk/ama)
-[![Discord](https://img.shields.io/discord/747100476775858276.svg?style=flat-square&label=Discord&logo=discord)](https://discord.gg/JumQXDc "realtime support / chat with the community." )
-
 [RandomNinjaAtk/ama](https://github.com/RandomNinjaAtk/docker-ama) is a script to automatically archive music for use in other audio applications (plex/kodi/jellyfin/emby) 
 
 [![RandomNinjaAtk/ama](https://raw.githubusercontent.com/RandomNinjaAtk/unraid-templates/master/randomninjaatk/img/ama.png)](https://github.com/RandomNinjaAtk/docker-ama)
